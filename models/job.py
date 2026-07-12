@@ -15,6 +15,7 @@ class Job:
 
     # Portal
     portal: str = ""
+    rule: str = ""
 
     # Mail
     body: str = ""
@@ -26,6 +27,9 @@ class Job:
     # Job
     company: str = ""
     position: str = ""
+
+    location: str = ""
+
     country: str = ""
     city: str = ""
     employment_type: str = ""

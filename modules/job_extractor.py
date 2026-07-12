@@ -10,135 +10,42 @@ import re
 
 from models.job import Job
 
+from modules.rules.generic_rule import GenericRule
+from modules.rules.linkedin_rule import LinkedInRule
+from modules.rules.irishjobs_rule import IrishJobsRule
+from modules.rules.indeed_rule import IndeedRule
+from modules.rules.michaelpage_rule import MichaelPageRule
+from modules.rules.pageexecutive_rule import PageExecutiveRule
+from modules.rules.dennisgorelik_rule import DennisGorelikRule
+from modules.rules.gulftalent_rule import GulfTalentRule
+
 
 class JobExtractor:
-
-    POSITION_WORDS = [
-        "manager",
-        "director",
-        "head",
-        "lead",
-        "engineer",
-        "architect",
-        "administrator",
-        "analyst",
-        "consultant",
-        "developer",
-        "specialist",
-        "officer",
-        "security",
-        "cyber",
-        "cloud",
-        "network",
-        "infrastructure",
-        "service delivery",
-        "operations",
-        "platform",
-        "grc",
-        "risk",
-        "technology",
-        "innovation",
-        "automation",
-        "testing",
-        "frontend",
-        "command centre",
-        "command center",
-        "ai",
-    ]
-
-    COMPANY_SKIP = [
-        "easy apply",
-        "actively recruiting",
-        "explore",
-        "view more jobs",
-        "see all jobs",
-        "manage",
-        "unsubscribe",
-        "privacy",
-        "linkedin",
-        "irishjobs",
-        "aia",
-    ]
-
-    LOCATION_PATTERN = re.compile(
-        r"\((Hybrid|Remote|On-site|Onsite)\)",
-        re.IGNORECASE,
-    )
 
     @classmethod
     def extract(cls, mail: Job) -> list[Job]:
 
-        text = mail.description or ""
+        portal = getattr(mail, "portal", "Other")
 
-        if not text.strip():
-            return [mail]
+        if portal == "LinkedIn":
+            return LinkedInRule.extract(mail)
 
-        lines = []
+        if portal == "IrishJobs":
+            return IrishJobsRule.extract(mail)
 
-        for line in text.splitlines():
+        if portal == "Indeed":
+            return IndeedRule.extract(mail)
 
-            line = " ".join(line.split())
+        if portal == "Michael Page":
+            return MichaelPageRule.extract(mail)
 
-            if not line:
-                continue
+        if portal == "Page Executive":
+            return PageExecutiveRule.extract(mail)
 
-            lines.append(line)
+        if portal == "Dennis Gorelik":
+            return DennisGorelikRule.extract(mail)
 
-        jobs = []
+        if portal == "GulfTalent":
+            return GulfTalentRule.extract(mail)
 
-        current = None
-
-        for line in lines:
-
-            lower = line.lower()
-
-            if any(word in lower for word in cls.POSITION_WORDS):
-
-                if current:
-                    jobs.append(current)
-
-                current = Job()
-
-                current.message_id = mail.message_id
-                current.thread_id = mail.thread_id
-                current.subject = mail.subject
-                current.sender = mail.sender
-                current.date = mail.date
-
-                current.body = mail.body
-                current.description = mail.description
-                current.urls = mail.urls
-                current.apply_url = mail.apply_url
-                current.mail_type = mail.mail_type
-
-                current.position = line
-
-                continue
-
-            if current is None:
-                continue
-
-            if not current.company:
-
-                if len(line) < 60:
-
-                    if not any(x in lower for x in cls.COMPANY_SKIP):
-
-                        current.company = line
-                        continue
-
-            if not current.location:
-
-                m = cls.LOCATION_PATTERN.search(line)
-
-                if m:
-
-                    current.location = line
-
-        if current:
-            jobs.append(current)
-
-        if not jobs:
-            jobs.append(mail)
-
-        return jobs
+        return GenericRule.extract(mail)

@@ -9,6 +9,7 @@ import base64
 from config import JOB_LABEL
 from models.job import Job
 from modules.gmail_service import get_gmail_service
+from config import MAX_MAILS
 
 
 def get_message_body(message_id: str) -> str:
@@ -133,7 +134,7 @@ def read_job_messages():
         .list(
             userId="me",
             labelIds=[label_id],
-            maxResults=50,
+            maxResults=MAX_MAILS,
         )
         .execute()
     )

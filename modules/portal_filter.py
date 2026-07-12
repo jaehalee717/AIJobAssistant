@@ -22,6 +22,25 @@ SUPPORTED_PORTALS = {
 
 }
 
+PORTAL_RULE = {
+
+    "LinkedIn": "LinkedInRule",
+
+    "IrishJobs": "IrishJobsRule",
+
+    "Indeed": "IndeedRule",
+
+    "Michael Page": "MichaelPageRule",
+
+    "Page Executive": "PageExecutiveRule",
+
+    "Dennis Gorelik": "DennisGorelikRule",
+
+    "GulfTalent": "GulfTalentRule",
+
+    "Other": "GenericRule",
+
+}
 
 def detect_supported_portal(job):
 
@@ -36,8 +55,11 @@ def detect_supported_portal(job):
         if keyword in text:
 
             job.portal = portal
-            return True
+            job.rule = PORTAL_RULE[portal]
+
+            return job
 
     job.portal = "Other"
+    job.rule = PORTAL_RULE["Other"]
 
-    return False
+    return job

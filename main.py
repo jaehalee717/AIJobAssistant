@@ -17,6 +17,7 @@ from modules.mail_parser import parse_mail
 from modules.mail_detector import detect_mail_type
 from modules.job_filter import is_job_mail
 from modules.job_extractor import JobExtractor
+from modules.portal_filter import detect_supported_portal
 from modules.jd_parser import JDParser
 from modules.score_engine import ScoreEngine
 from modules.report_generator import ReportGenerator
@@ -53,12 +54,25 @@ def main():
     print(f"Found {len(mails)} mail(s)")
     print("=" * 80)
 
+    # ---------- TEST ----------
+    TEST_PORTAL = "LinkedIn"
+    # --------------------------
+
     for mail in mails:
 
         try:
 
             # Parse Mail
             mail = parse_mail(mail)
+
+            mail = detect_supported_portal(mail)
+
+            print(mail.portal)
+            print(mail.rule)
+            print(">>> HERE <<<")
+
+            if mail.portal != TEST_PORTAL:
+                continue
 
             mail.mail_type = detect_mail_type(
                 mail.subject,
@@ -68,10 +82,17 @@ def main():
             if not is_job_mail(mail):
                 continue
 
-            # One Mail -> Many Jobs
+            print("Before Extract")
             jobs = JobExtractor.extract(mail)
+            print("After Extract")
+            print(len(jobs))
+            print(len(jobs))
+
+            print(f"Portal={mail.portal}, Rule={mail.rule}, Jobs={len(jobs)}")
 
             print(f"\n{mail.subject}")
+            print(f"Portal         : {mail.portal}")
+            print(f"Rule           : {mail.rule}")
             print(f"Extracted Jobs : {len(jobs)}")
 
             for job in jobs:
@@ -96,6 +117,7 @@ def main():
 
                     print(
                         f"[{processed}] "
+                        f"[{job.portal}] "
                         f"{job.position} | "
                         f"{job.company} | "
                         f"{job.match} | "
