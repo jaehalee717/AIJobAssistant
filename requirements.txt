@@ -1,0 +1,11 @@
+python-docx
+beautifulsoup4
+lxml
+requests
+pandas
+openpyxl
+schedule
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
