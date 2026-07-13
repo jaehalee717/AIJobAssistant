@@ -47,6 +47,9 @@ def is_job_mail(job: Job) -> bool:
     subject = job.subject.lower()
     sender = job.sender.lower()
 
+    if job.portal == "LinkedIn Job Alerts":
+        return True
+
     for keyword in BLOCK_SENDER:
         if keyword in sender:
             return False

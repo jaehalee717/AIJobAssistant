@@ -6,6 +6,7 @@ Version : v1.0.1
 
 import re
 
+from models import job
 from models.job import Job
 
 from modules.gmail_reader import get_message_body
@@ -22,23 +23,6 @@ def parse_mail(job: Job) -> Job:
     job.body = body
 
     job.description = HTMLParser.to_text(body)
-
-    # ------------------------------------------------------------------
-    # DEBUG (Temporary)
-    # ------------------------------------------------------------------
-    subject = (job.subject or "").lower()
-    sender = (job.sender or "").lower()
-
-    if "linkedin" in sender or "linkedin" in subject:
-
-        print()
-        print("=" * 80)
-        print("LINKEDIN TEXT")
-        print("=" * 80)
-        print(job.description[:5000])
-        print("=" * 80)
-        print()
-    # ------------------------------------------------------------------
 
     urls = re.findall(URL_PATTERN, body)
 

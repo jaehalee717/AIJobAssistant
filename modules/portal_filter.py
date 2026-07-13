@@ -6,7 +6,7 @@ Version : v1.1
 
 SUPPORTED_PORTALS = {
 
-    "linkedin": "LinkedIn",
+    "linkedin": "LinkedIn Job Alerts",
 
     "irishjobs": "IrishJobs",
 
@@ -24,7 +24,7 @@ SUPPORTED_PORTALS = {
 
 PORTAL_RULE = {
 
-    "LinkedIn": "LinkedInRule",
+    "LinkedIn Job Alerts": "LinkedInRule",
 
     "IrishJobs": "IrishJobsRule",
 

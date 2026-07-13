@@ -1,127 +1,90 @@
 """
-linkedin_rule.py
-AIJobAssistant
-Version : v2.0
+modules/rules/linkedin_rule.py
+
+LinkedIn Job Alert Rule
+Version : v1.1.0
 """
+
+from __future__ import annotations
 
 import re
 
-print("★★★★★ NEW LINKEDIN RULE LOADED ★★★★★")
+from bs4 import BeautifulSoup
 
 from models.job import Job
 
 
 class LinkedInRule:
 
-    @classmethod
-    def extract(cls, mail: Job) -> list[Job]:
+    IGNORE_LINES = {
+        "",
+        "Fast growing",
+        "Top applicant",
+        "Apply with resume & profile",
+        "This company is actively hiring",
+    }
 
-        text = mail.description or ""
+    URL_PATTERN = re.compile(
+        r"^View job:\s*(https://\S+)",
+        re.IGNORECASE,
+    )
 
-        if not text.strip():
-            return [mail]
+    def extract(self, mail):
 
-        lines = []
+        html = mail.body or ""
 
-        for line in text.splitlines():
+        soup = BeautifulSoup(html, "html.parser")
 
-            line = " ".join(line.split()).strip()
+        text = soup.get_text("\n", strip=True)
 
-            if line:
-                lines.append(line)
+        lines = [
+            line.strip()
+            for line in text.splitlines()
+            if line.strip()
+        ]
 
         jobs = []
 
-        block = []
+        for index, line in enumerate(lines):
 
-        def create_job(block_lines):
+            match = self.URL_PATTERN.match(line)
 
-            if len(block_lines) < 4:
-                return None
+            if not match:
+                continue
 
-            position = block_lines[0]
-            company = block_lines[1]
-            location = block_lines[2]
+            url = match.group(1)
 
-            invalid = (
-                "LinkedIn",
-                "View job",
-                "See more",
-                "Manage job",
-                "Unsubscribe",
-                "Help",
-                "Learn why",
-                "You are receiving",
-                "Report a bug",
-                "This email",
-                "new jobs matching",
-                "jobs posted by",
-                "jobs that mention",
-                "connections"
-            )
+            values = []
 
-            for word in invalid:
+            i = index - 1
 
-                if position.startswith(word):
-                    return None
+            while i >= 0 and len(values) < 3:
 
-            if len(position) < 5:
-                return None
+                value = lines[i].strip()
+
+                if (
+                    value
+                    and value not in self.IGNORE_LINES
+                    and not value.startswith("View job:")
+                ):
+                    values.append(value)
+
+                i -= 1
+
+            if len(values) != 3:
+                continue
 
             job = Job()
 
-            job.message_id = mail.message_id
-            job.thread_id = mail.thread_id
-            job.subject = mail.subject
-            job.sender = mail.sender
-            job.date = mail.date
+            job.portal = "LinkedIn Job Alerts"
 
-            job.body = mail.body
-            job.description = mail.description
-            job.urls = mail.urls
-            job.mail_type = mail.mail_type
+            job.position = values[2]
+            job.company = values[1]
+            job.location = values[0]
 
-            job.portal = "LinkedIn"
+            job.url = url
+            job.apply_url = url
 
-            job.position = position
-            job.company = company
-            job.location = location
-
-            for line in block_lines:
-
-                if "linkedin.com" in line:
-                    m = re.search(r"https?://\S+", line)
-
-                    if m:
-                        job.apply_url = m.group(0)
-                        break
-
-            return job
-
-        for line in lines:
-            print(repr(line))
-
-            if line.startswith("-----"):
-
-                job = create_job(block)
-                print("BLOCK RESULT:", job)   # 추가
-
-                if job:
-                    jobs.append(job)
-
-                block = []
-
-                continue
-
-            block.append(line)
-
-        job = create_job(block)
-        print("LAST BLOCK:", job)   # 추가
-
-        if job:
             jobs.append(job)
 
-        if jobs:
-            return jobs
-
-        return [mail]
+        return jobs

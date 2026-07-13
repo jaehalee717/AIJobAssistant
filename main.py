@@ -55,7 +55,7 @@ def main():
     print("=" * 80)
 
     # ---------- TEST ----------
-    TEST_PORTAL = "LinkedIn"
+    TEST_PORTAL = "LinkedIn Job Alerts"
     # --------------------------
 
     for mail in mails:
@@ -65,11 +65,18 @@ def main():
             # Parse Mail
             mail = parse_mail(mail)
 
+            if "jobalerts-noreply@linkedin.com" not in mail.sender.lower():
+                continue
+
+            print("=" * 80)
+            print(mail.sender)
+            print(mail.subject)
+            print("=" * 80)
+
             mail = detect_supported_portal(mail)
 
             print(mail.portal)
             print(mail.rule)
-            print(">>> HERE <<<")
 
             if mail.portal != TEST_PORTAL:
                 continue
@@ -79,21 +86,12 @@ def main():
                 mail.sender,
             ).value
 
-            if not is_job_mail(mail):
+            result = is_job_mail(mail)
+
+            if not result:
                 continue
 
-            print("Before Extract")
             jobs = JobExtractor.extract(mail)
-            print("After Extract")
-            print(len(jobs))
-            print(len(jobs))
-
-            print(f"Portal={mail.portal}, Rule={mail.rule}, Jobs={len(jobs)}")
-
-            print(f"\n{mail.subject}")
-            print(f"Portal         : {mail.portal}")
-            print(f"Rule           : {mail.rule}")
-            print(f"Extracted Jobs : {len(jobs)}")
 
             for job in jobs:
 
@@ -139,7 +137,7 @@ def main():
 
             print()
             print("=" * 80)
-            print(mail.subject)
+
             print(ex)
             print("=" * 80)
 
