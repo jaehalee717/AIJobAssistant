@@ -21,7 +21,7 @@ CREDENTIALS_FILE = CONFIG_DIR / "credentials.json"
 
 
 def authenticate():
-
+ 
     creds = None
 
     # Scope가 변경되었으므로 기존 token은 무시

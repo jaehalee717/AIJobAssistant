@@ -1,7 +1,7 @@
 """
 report_generator.py
 AIJobAssistant
-Version : v1.1.0
+Version : v1.2.0
 """
 
 import re
@@ -12,7 +12,7 @@ from docx import Document
 from docx.shared import Pt
 
 from models.job import Job
-
+from utils.word_helper import add_hyperlink
 
 class ReportGenerator:
 
@@ -23,6 +23,21 @@ class ReportGenerator:
             parents=True,
             exist_ok=True,
         )
+
+        self.execution_time = datetime.now()
+
+        self.doc = Document()
+
+        title = self.doc.add_heading(
+            "AI Job Assistant Report",
+            level=1,
+        )
+
+        title.runs[0].font.size = Pt(18)
+
+        self.header = self.doc.add_paragraph()
+
+        self.job_count = 0
 
     @staticmethod
     def safe_filename(text: str) -> str:
@@ -39,51 +54,53 @@ class ReportGenerator:
 
         return text or "Unknown"
 
-    def generate(self, job: Job) -> str:
+    def generate(self, job: Job):
 
-        doc = Document()
+        self.job_count += 1
 
-        title = doc.add_heading(
-            "AI Job Assistant Report",
-            level=1,
+        self.doc.add_heading(
+            f"Job #{self.job_count}",
+            level=2,
         )
 
-        title.runs[0].font.size = Pt(18)
-
-        doc.add_paragraph(
-            f"Generated : {datetime.now():%Y-%m-%d %H:%M:%S}"
-        )
-
-        doc.add_paragraph()
-
-        doc.add_heading("Job Information", level=2)
-
-        table = doc.add_table(rows=0, cols=2)
+        table = self.doc.add_table(rows=0, cols=2)
         table.style = "Table Grid"
 
         def add_row(name, value):
 
             cells = table.add_row().cells
             cells[0].text = name
-            cells[1].text = value or ""
+            cells[1].text = "" if value is None else str(value)
 
         add_row("Company", job.company)
         add_row("Position", job.position)
         add_row("Location", job.location)
-        add_row("Apply URL", job.apply_url)
+
+        cells = table.add_row().cells
+        cells[0].text = "Apply URL"
+
+        add_hyperlink(
+            cells[1].paragraphs[0],
+            "Open Job Posting",
+            job.apply_url,
+        )
+        
         add_row("Mail Type", job.mail_type)
 
-        doc.add_paragraph()
+        self.doc.add_paragraph()
 
-        doc.add_heading("Evaluation", level=2)
+        self.doc.add_heading(
+            "Evaluation",
+            level=3,
+        )
 
-        table = doc.add_table(rows=0, cols=2)
+        table = self.doc.add_table(rows=0, cols=2)
         table.style = "Table Grid"
 
         add = lambda n, v: (
             (lambda c: (
                 setattr(c[0], "text", n),
-                setattr(c[1], "text", str(v))
+                setattr(c[1], "text", "" if v is None else str(v))
             ))(table.add_row().cells)
         )
 
@@ -94,30 +111,56 @@ class ReportGenerator:
         add("Weak", job.weak)
         add("Reason", job.reason)
 
-        doc.add_paragraph()
+        self.doc.add_paragraph()
 
-        doc.add_heading("Mail", level=2)
+        self.doc.add_heading(
+            "Mail",
+            level=3,
+        )
 
         body = job.description or job.body or ""
 
         if len(body) > 8000:
             body = body[:8000]
 
-        doc.add_paragraph(body)
+        self.doc.add_paragraph(body)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.doc.add_page_break()
 
-        company = self.safe_filename(job.company)
-        position = self.safe_filename(job.position)
+    def save(
+        self,
+        processed: int,
+        skipped: int,
+        failed: int,
+    ) -> str:
+
+        self.header.clear()
+
+        self.header.add_run(
+            f"Execution Time : "
+            f"{self.execution_time:%Y-%m-%d %H:%M:%S}\n"
+        )
+
+        self.header.add_run(
+            f"Processed : {processed}\n"
+        )
+
+        self.header.add_run(
+            f"Skipped : {skipped}\n"
+        )
+
+        self.header.add_run(
+            f"Failed : {failed}"
+        )
 
         filename = (
-            f"{timestamp}"
-            f"_{company}"
-            f"_{position}.docx"
+            "AIJobAssistant_"
+            f"{self.execution_time:%Y%m%d_%H%M}"
+            ".docx"
         )
 
         filepath = self.report_folder / filename
 
-        doc.save(filepath)
+        self.doc.save(filepath)
 
         return str(filepath)

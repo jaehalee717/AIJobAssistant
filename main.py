@@ -1,11 +1,15 @@
 """
 main.py
 AIJobAssistant
-Version : v1.1.0
+Version : v1.2.0
 """
 
 from config import PROJECT_ROOT
 from config import DB_FILE
+from debug import TEST_PORTAL
+from debug import MAX_MAILS
+from debug import STOP_AFTER_FIRST_JOB
+from debug import DEBUG
 
 from utils.logger import logger
 
@@ -24,6 +28,10 @@ from modules.report_generator import ReportGenerator
 from modules.duplicate_checker import DuplicateChecker
 from modules.gmail_label_manager import GmailLabelManager
 
+def debug_print(*args, **kwargs):
+
+    if DEBUG:
+        print(*args, **kwargs)
 
 def main():
 
@@ -39,24 +47,22 @@ def main():
     checker = DuplicateChecker(DB_FILE)
     label_manager = GmailLabelManager()
 
-    print("AIJobAssistant v1.1.0")
-    print(f"Project : {PROJECT_ROOT}")
-    print(f"Database : {DB_FILE}")
-    print()
+    debug_print("AIJobAssistant v1.2.0")
+    debug_print(f"Project : {PROJECT_ROOT}")
+    debug_print(f"Database : {DB_FILE}")
+    debug_print()
 
     mails = read_job_messages()
+    if MAX_MAILS > 0:
+        mails = mails[:MAX_MAILS]
 
     processed = 0
     skipped = 0
     failed = 0
 
-    print("=" * 80)
-    print(f"Found {len(mails)} mail(s)")
-    print("=" * 80)
-
-    # ---------- TEST ----------
-    TEST_PORTAL = "LinkedIn Job Alerts"
-    # --------------------------
+    debug_print("=" * 80)
+    debug_print(f"Found {len(mails)} mail(s)")
+    debug_print("=" * 80)
 
     for mail in mails:
 
@@ -68,15 +74,15 @@ def main():
             if "jobalerts-noreply@linkedin.com" not in mail.sender.lower():
                 continue
 
-            print("=" * 80)
-            print(mail.sender)
-            print(mail.subject)
-            print("=" * 80)
+            debug_print("=" * 80)
+            debug_print(mail.sender)
+            debug_print(mail.subject)
+            debug_print("=" * 80)
 
             mail = detect_supported_portal(mail)
 
-            print(mail.portal)
-            print(mail.rule)
+            debug_print(mail.portal)
+            debug_print(mail.rule)
 
             if mail.portal != TEST_PORTAL:
                 continue
@@ -109,11 +115,13 @@ def main():
 
                         checker.save(job.apply_url)
 
-                    report_path = report.generate(job)
+                    report.generate(job)
 
                     processed += 1
+                    if STOP_AFTER_FIRST_JOB:
+                        break
 
-                    print(
+                    debug_print(
                         f"[{processed}] "
                         f"[{job.portal}] "
                         f"{job.position} | "
@@ -126,7 +134,9 @@ def main():
 
                     failed += 1
 
-                    print(f"Job Error : {ex}")
+                    logger.exception(ex)
+
+                    debug_print(f"Job Error : {ex}")
 
             # 메일 전체 처리가 끝난 후 라벨 이동
             label_manager.mark_completed(mail.message_id)
@@ -135,11 +145,13 @@ def main():
 
             failed += 1
 
-            print()
-            print("=" * 80)
+            logger.exception(ex)
 
-            print(ex)
-            print("=" * 80)
+    report_path = report.save(
+        processed=processed,
+        skipped=skipped,
+        failed=failed,
+    )
 
     print()
     print("=" * 80)
@@ -148,6 +160,7 @@ def main():
     print(f"Processed : {processed}")
     print(f"Skipped   : {skipped}")
     print(f"Failed    : {failed}")
+    print(f"Report    : {report_path}")
 
 
 if __name__ == "__main__":
