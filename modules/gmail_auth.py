@@ -10,14 +10,14 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-from config import CONFIG_DIR
+from config import GMAIL_CREDENTIALS, GMAIL_TOKEN
 
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.modify",
 ]
 
-TOKEN_FILE = CONFIG_DIR / "token.json"
-CREDENTIALS_FILE = CONFIG_DIR / "credentials.json"
+TOKEN_FILE = GMAIL_TOKEN
+CREDENTIALS_FILE = GMAIL_CREDENTIALS
 
 
 def authenticate():

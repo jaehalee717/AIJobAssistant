@@ -1,7 +1,9 @@
 """
 SQLite Manager
-AIJobAssistant v0.8
+AIJobAssistant v1.5.0
 """
+
+from __future__ import annotations
 
 import sqlite3
 
@@ -22,7 +24,10 @@ class SQLiteManager:
 
         self.conn.close()
 
-    def is_duplicate(self, url):
+    def is_duplicate(
+        self,
+        url: str,
+    ) -> bool:
 
         self.cursor.execute(
             """
@@ -35,7 +40,10 @@ class SQLiteManager:
 
         return self.cursor.fetchone() is not None
 
-    def insert_job(self, job):
+    def insert_job(
+        self,
+        job: dict,
+    ) -> None:
 
         self.cursor.execute(
             """
@@ -96,9 +104,9 @@ class SQLiteManager:
 
     def update_status(
         self,
-        url,
-        status,
-    ):
+        url: str,
+        status: str,
+    ) -> None:
 
         self.cursor.execute(
             """
@@ -110,6 +118,46 @@ class SQLiteManager:
                 status,
                 url,
             ),
+        )
+
+        self.conn.commit()
+
+    def get_ready_to_apply_job(
+        self,
+    ) -> dict | None:
+
+        self.cursor.execute(
+            """
+            SELECT *
+            FROM jobs
+            WHERE status = ?
+            ORDER BY id
+            LIMIT 1
+            """,
+            ("READY_TO_APPLY",),
+        )
+
+        row = self.cursor.fetchone()
+
+        if row is None:
+            return None
+
+        return dict(row)
+
+    def update_apply_status(
+        self,
+        url: str,
+    ) -> None:
+
+        self.cursor.execute(
+            """
+            UPDATE jobs
+            SET
+                status = 'APPLIED',
+                applied = 1
+            WHERE url = ?
+            """,
+            (url,),
         )
 
         self.conn.commit()

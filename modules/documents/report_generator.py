@@ -1,7 +1,7 @@
 """
 report_generator.py
 AIJobAssistant
-Version : v1.2.0
+Version : v1.2.2
 """
 
 import re
@@ -12,7 +12,11 @@ from docx import Document
 from docx.shared import Pt
 
 from models.job import Job
-from utils.word_helper import add_hyperlink
+
+from modules.report.summary_writer import SummaryWriter
+from modules.report.analysis_writer import AnalysisWriter
+from modules.report.mail_writer import MailWriter
+
 
 class ReportGenerator:
 
@@ -49,10 +53,7 @@ class ReportGenerator:
         text = re.sub(r'[\\/:*?"<>|]', "_", text)
         text = re.sub(r"\s+", " ", text).strip()
 
-        if len(text) > 60:
-            text = text[:60]
-
-        return text or "Unknown"
+        return text[:60] or "Unknown"
 
     def generate(self, job: Job):
 
@@ -63,69 +64,20 @@ class ReportGenerator:
             level=2,
         )
 
-        table = self.doc.add_table(rows=0, cols=2)
-        table.style = "Table Grid"
-
-        def add_row(name, value):
-
-            cells = table.add_row().cells
-            cells[0].text = name
-            cells[1].text = "" if value is None else str(value)
-
-        add_row("Company", job.company)
-        add_row("Position", job.position)
-        add_row("Location", job.location)
-
-        cells = table.add_row().cells
-        cells[0].text = "Apply URL"
-
-        add_hyperlink(
-            cells[1].paragraphs[0],
-            "Open Job Posting",
-            job.apply_url,
-        )
-        
-        add_row("Mail Type", job.mail_type)
-
-        self.doc.add_paragraph()
-
-        self.doc.add_heading(
-            "Evaluation",
-            level=3,
+        SummaryWriter.write(
+            self.doc,
+            job,
         )
 
-        table = self.doc.add_table(rows=0, cols=2)
-        table.style = "Table Grid"
-
-        add = lambda n, v: (
-            (lambda c: (
-                setattr(c[0], "text", n),
-                setattr(c[1], "text", "" if v is None else str(v))
-            ))(table.add_row().cells)
+        AnalysisWriter.write(
+            self.doc,
+            job,
         )
 
-        add("Match", job.match)
-        add("Decision", job.decision)
-        add("Confidence", job.confidence)
-        add("Strength", job.strength)
-        add("Weak", job.weak)
-        add("Reason", job.reason)
-
-        self.doc.add_paragraph()
-
-        self.doc.add_heading(
-            "Mail",
-            level=3,
+        MailWriter.write(
+            self.doc,
+            job,
         )
-
-        body = job.description or job.body or ""
-
-        if len(body) > 8000:
-            body = body[:8000]
-
-        self.doc.add_paragraph(body)
-
-        self.doc.add_page_break()
 
     def save(
         self,

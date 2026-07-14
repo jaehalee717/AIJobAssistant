@@ -16,7 +16,12 @@ DEBUG = True
 
 TEST_PORTAL = "LinkedIn Job Alerts"
 
-MAX_MAILS = 5
+# ==========================================================
+# Gmail
+# ==========================================================
+
+MOVE_COMPLETED_LABEL = False
+MAX_MAILS = 20
 
 STOP_AFTER_FIRST_JOB = False
 

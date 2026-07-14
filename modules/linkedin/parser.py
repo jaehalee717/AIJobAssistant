@@ -2,7 +2,7 @@
 modules/linkedin/parser.py
 
 LinkedIn HTML Parser
-Version : v1.2.0
+Version : v1.2.1
 """
 
 from __future__ import annotations
@@ -12,14 +12,48 @@ from bs4 import BeautifulSoup
 
 class LinkedInParser:
 
-    def parse(self, html: str) -> list[str]:
+    IGNORE_PREFIXES = (
+        "Manage preferences",
+        "Unsubscribe",
+        "Help",
+        "Privacy",
+        "Terms",
+        "LinkedIn Corporation",
+    )
 
-        soup = BeautifulSoup(html or "", "html.parser")
+    @classmethod
+    def parse(cls, html: str) -> list[str]:
 
-        text = soup.get_text("\n", strip=True)
+        soup = BeautifulSoup(
+            html or "",
+            "html.parser",
+        )
 
-        return [
-            line.strip()
-            for line in text.splitlines()
-            if line.strip()
-        ]
+        text = soup.get_text(
+            "\n",
+            strip=True,
+        )
+
+        lines = []
+        seen = set()
+
+        for line in text.splitlines():
+
+            line = " ".join(line.split())
+
+            if not line:
+                continue
+
+            if any(
+                line.startswith(prefix)
+                for prefix in cls.IGNORE_PREFIXES
+            ):
+                continue
+
+            if line in seen:
+                continue
+
+            seen.add(line)
+            lines.append(line)
+
+        return lines

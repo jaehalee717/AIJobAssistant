@@ -11,6 +11,13 @@ import re
 
 PORTAL_NAME = "LinkedIn Job Alerts"
 
+FIELD_COUNT = 3
+
+POSITION_INDEX = 2
+COMPANY_INDEX = 1
+LOCATION_INDEX = 0
+VIEW_JOB_PREFIX = "View job:"
+
 IGNORE_LINES = {
     "",
     "Fast growing",

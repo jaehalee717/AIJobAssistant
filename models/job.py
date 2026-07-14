@@ -46,3 +46,16 @@ class Job:
     strength: str = ""
     weak: str = ""
     reason: str = ""
+
+    recommendation: str = ""
+    next_action: str = ""
+
+    career_score: int = 0
+    role_score: int = 0
+    leadership_score: int = 0
+    security_score: int = 0
+    salary_score: int = 0
+    location_score: int = 0
+    language_score: int = 0
+
+    total_score: int = 0
