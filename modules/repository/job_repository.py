@@ -16,6 +16,7 @@ class JobRepository:
 
         self.db = DB_FILE
 
+
     def exists(
         self,
         apply_url: str,
@@ -35,6 +36,7 @@ class JobRepository:
 
             return cur.fetchone() is not None
 
+
     def insert(
         self,
         job: Job,
@@ -48,33 +50,52 @@ class JobRepository:
                 (
                     company,
                     position,
+
+                    location,
+                    description,
+
                     country,
                     city,
+
                     url,
+
                     ai_score,
                     ai_decision,
+
                     status,
+
                     salary,
+
                     date
                 )
                 VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     job.company,
                     job.position,
+
+                    job.location,
+                    job.description,
+
                     job.country,
                     job.city,
+
                     job.apply_url,
+
                     job.match,
                     job.decision,
+
                     "NEW",
+
                     job.salary,
+
                     job.date,
                 ),
             )
 
             conn.commit()
+
 
     def update(
         self,
@@ -92,6 +113,7 @@ class JobRepository:
             job.decision,
             "REVIEW",
         )
+
 
         with sqlite3.connect(self.db) as conn:
 
@@ -116,6 +138,7 @@ class JobRepository:
 
             conn.commit()
 
+
     def get_ready_to_apply_job(
         self,
     ) -> Job | None:
@@ -138,27 +161,38 @@ class JobRepository:
 
             row = cur.fetchone()
 
+
             if row is None:
+
                 return None
+
 
             job = Job()
 
             job.company = row["company"]
+
             job.position = row["position"]
+
+
+            job.location = row["location"]
+
+            job.description = row["description"]
+
+
             job.country = row["country"]
+
             job.city = row["city"]
 
-            job.location = (
-                f"{job.city}, {job.country}"
-                if job.city
-                else job.country
-            )
 
             job.salary = row["salary"]
+
             job.apply_url = row["url"]
+
             job.reason = row["reason"]
 
+
             return job
+
 
     def update_applied(
         self,
@@ -179,6 +213,7 @@ class JobRepository:
             )
 
             conn.commit()
+
 
     def update_status(
         self,

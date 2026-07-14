@@ -13,7 +13,10 @@ from modules.knowledge_loader import KnowledgeLoader
 class PromptBuilder:
     """Prompt Builder"""
 
-    def __init__(self, knowledge: KnowledgeLoader):
+    def __init__(
+        self,
+        knowledge: KnowledgeLoader,
+    ):
 
         self.knowledge = knowledge
 
@@ -24,6 +27,15 @@ class PromptBuilder:
         """
         Build CV prompt.
         """
+
+        knowledge = self.knowledge.get_many(
+            [
+                "career_library",
+                "cv_rules",
+                "positioning_rules",
+                "quality_checklist",
+            ]
+        )
 
         prompt = f"""
 You are an expert ATS resume writer.
@@ -44,7 +56,7 @@ Job Description:
 
 Knowledge:
 
-{self.knowledge.get_all()}
+{knowledge}
 
 Requirements
 
@@ -53,11 +65,17 @@ Requirements
 - Truthful only.
 - Never invent experience.
 - Use concise business English.
-- Max 2 pages.
+- Maximum 2 pages.
 - Return only the CV content.
 """
 
-        return prompt.strip()
+        prompt = prompt.strip()
+
+        print("=" * 80)
+        print(f"CV Prompt Size : {len(prompt):,} chars")
+        print("=" * 80)
+
+        return prompt
 
     def build_cl_prompt(
         self,
@@ -66,6 +84,15 @@ Requirements
         """
         Build Cover Letter prompt.
         """
+
+        knowledge = self.knowledge.get_many(
+            [
+                "career_library",
+                "cover_letter_rules",
+                "positioning_rules",
+                "quality_checklist",
+            ]
+        )
 
         prompt = f"""
 You are an expert cover letter writer.
@@ -86,7 +113,7 @@ Job Description:
 
 Knowledge:
 
-{self.knowledge.get_all()}
+{knowledge}
 
 Requirements
 
@@ -99,4 +126,10 @@ Requirements
 - Return only the cover letter.
 """
 
-        return prompt.strip()
+        prompt = prompt.strip()
+
+        print("=" * 80)
+        print(f"CL Prompt Size : {len(prompt):,} chars")
+        print("=" * 80)
+
+        return prompt

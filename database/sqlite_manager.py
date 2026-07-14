@@ -20,9 +20,11 @@ class SQLiteManager:
 
         self.cursor = self.conn.cursor()
 
+
     def close(self):
 
         self.conn.close()
+
 
     def is_duplicate(
         self,
@@ -40,6 +42,7 @@ class SQLiteManager:
 
         return self.cursor.fetchone() is not None
 
+
     def insert_job(
         self,
         job: dict,
@@ -51,22 +54,35 @@ class SQLiteManager:
             (
                 company,
                 position,
+
+                location,
+                description,
+
                 country,
                 city,
+
                 url,
+
                 ai_score,
                 ai_decision,
                 user_decision,
+
                 status,
+
                 applied,
-                skip,
+                skipped,
+
                 interview1,
                 interview2,
                 interview3,
+
                 offer,
-                reject,
+                reject_flag,
+
                 salary,
+
                 date,
+
                 reason
             )
             VALUES
@@ -74,33 +90,47 @@ class SQLiteManager:
                 ?,?,?,?,?,?,
                 ?,?,?,?,?,?,
                 ?,?,?,?,?,?,
-                ?,?
+                ?,?,?
             )
             """,
             (
                 job.get("company"),
                 job.get("position"),
+
+                job.get("location"),
+                job.get("description"),
+
                 job.get("country"),
                 job.get("city"),
+
                 job.get("url"),
+
                 job.get("ai_score"),
                 job.get("ai_decision"),
                 "",
+
                 "NEW",
+
+                0,
+                0,
+
                 0,
                 0,
                 0,
+
                 0,
                 0,
-                0,
-                0,
+
                 job.get("salary"),
+
                 job.get("date"),
+
                 job.get("reason"),
             ),
         )
 
         self.conn.commit()
+
 
     def update_status(
         self,
@@ -122,6 +152,7 @@ class SQLiteManager:
 
         self.conn.commit()
 
+
     def get_ready_to_apply_job(
         self,
     ) -> dict | None:
@@ -130,7 +161,7 @@ class SQLiteManager:
             """
             SELECT *
             FROM jobs
-            WHERE status = ?
+            WHERE status=?
             ORDER BY id
             LIMIT 1
             """,
@@ -144,6 +175,7 @@ class SQLiteManager:
 
         return dict(row)
 
+
     def update_apply_status(
         self,
         url: str,
@@ -153,9 +185,9 @@ class SQLiteManager:
             """
             UPDATE jobs
             SET
-                status = 'APPLIED',
-                applied = 1
-            WHERE url = ?
+                status='APPLIED',
+                applied=1
+            WHERE url=?
             """,
             (url,),
         )

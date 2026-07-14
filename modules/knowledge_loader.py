@@ -39,6 +39,29 @@ class KnowledgeLoader:
 
         return self.knowledge.get(name, "")
 
+    def get_many(
+        self,
+        names: list[str],
+    ) -> str:
+        """
+        Load only selected knowledge documents.
+        """
+
+        texts = []
+
+        for name in names:
+
+            text = self.get(name)
+
+            if not text:
+                continue
+
+            texts.append(f"===== {name} =====")
+            texts.append(text)
+            texts.append("")
+
+        return "\n".join(texts)
+
     def get_all(self) -> str:
 
         texts = []

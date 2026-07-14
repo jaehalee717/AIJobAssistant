@@ -1,6 +1,6 @@
 """
 database.py
-v0.8
+AIJobAssistant v1.5.0
 
 SQLite Database Manager
 """
@@ -11,14 +11,25 @@ from pathlib import Path
 
 class Database:
 
-    def __init__(self, db_path: str):
+    def __init__(
+        self,
+        db_path: str,
+    ):
+
         self.db_path = Path(db_path)
+
 
     def initialize(self):
 
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.db_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
         cursor = conn.cursor()
 
         cursor.execute(
@@ -29,6 +40,10 @@ class Database:
 
                 company TEXT,
                 position TEXT,
+
+                location TEXT,
+                description TEXT,
+
                 country TEXT,
                 city TEXT,
 
@@ -41,16 +56,18 @@ class Database:
                 status TEXT,
 
                 applied INTEGER DEFAULT 0,
-                skip INTEGER DEFAULT 0,
+                skipped INTEGER DEFAULT 0,
 
                 interview1 INTEGER DEFAULT 0,
                 interview2 INTEGER DEFAULT 0,
                 interview3 INTEGER DEFAULT 0,
 
                 offer INTEGER DEFAULT 0,
-                reject INTEGER DEFAULT 0,
+                reject_flag INTEGER DEFAULT 0,
 
                 salary TEXT,
+
+                date TEXT,
 
                 reason TEXT,
 
@@ -60,7 +77,12 @@ class Database:
         )
 
         conn.commit()
+
         conn.close()
 
+
     def connect(self):
-        return sqlite3.connect(self.db_path)
+
+        return sqlite3.connect(
+            self.db_path
+        )
