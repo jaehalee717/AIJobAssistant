@@ -1,7 +1,7 @@
 """
 modules/output_manager.py
 AIJobAssistant
-Version : v1.5.1
+Version : v2.0.0
 """
 
 from __future__ import annotations
@@ -16,7 +16,10 @@ from models.job import Job
 
 class OutputManager:
 
-    def __init__(self, job: Job):
+    def __init__(
+        self,
+        job: Job,
+    ):
 
         self.job = job
 
@@ -27,42 +30,129 @@ class OutputManager:
         position = self._sanitize(job.position)
         country = self._sanitize(job.country)
 
-        self.folder_name = f"{company}_{position}_{country}_{date}"
+        self.folder_name = (
+            f"{company}_{position}_{country}_{date}"
+        )
 
-        self.output_dir = OUTPUT_DIR / today / self.folder_name
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir = (
+            OUTPUT_DIR
+            / today
+            / self.folder_name
+        )
+
+        self.output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
     @staticmethod
-    def _sanitize(text: str) -> str:
+    def _sanitize(
+        text: str,
+    ) -> str:
 
         if not text:
             return "Unknown"
 
-        text = re.sub(r'[\\/:*?"<>|]', "", text)
-        text = re.sub(r"\s+", "_", text.strip())
+        text = re.sub(
+            r'[\\/:*?"<>|]',
+            "",
+            text,
+        )
+
+        text = re.sub(
+            r"\s+",
+            "_",
+            text.strip(),
+        )
 
         return text
 
-    def get_cv_docx_path(self) -> Path:
-        return self.output_dir / "Jaeha_Lee_CV.docx"
+    # ------------------------------------------------------------------
+    # Directory
+    # ------------------------------------------------------------------
 
-    def get_cv_pdf_path(self) -> Path:
-        return self.output_dir / "Jaeha_Lee_CV.pdf"
+    def get_output_dir(
+        self,
+    ) -> Path:
 
-    def get_cl_docx_path(self) -> Path:
-        return self.output_dir / "Jaeha_Lee_CL.docx"
+        return self.output_dir
 
-    def get_cl_pdf_path(self) -> Path:
-        return self.output_dir / "Jaeha_Lee_CL.pdf"
+    def get_folder_name(
+        self,
+    ) -> str:
 
-    def get_jd_html_path(self) -> Path:
-        return self.output_dir / f"{self.folder_name}.html"
+        return self.folder_name
 
-    def get_salary_path(self) -> Path:
-        return self.output_dir / "Salary.txt"
+    # ------------------------------------------------------------------
+    # Paths
+    # ------------------------------------------------------------------
 
-    def get_report_path(self) -> Path:
-        return self.output_dir / "Report.md"
+    def get_jd_html_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / f"{self.folder_name}.html"
+        )
+
+    def get_analysis_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / "Analysis.md"
+        )
+
+    def get_salary_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / "Salary.txt"
+        )
+
+    def get_cv_docx_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / "Jaeha_Lee_CV.docx"
+        )
+
+    def get_cv_pdf_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / "Jaeha_Lee_CV.pdf"
+        )
+
+    def get_cl_docx_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / "Jaeha_Lee_CL.docx"
+        )
+
+    def get_cl_pdf_path(
+        self,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / "Jaeha_Lee_CL.pdf"
+        )
+
+    # ------------------------------------------------------------------
+    # Save
+    # ------------------------------------------------------------------
 
     def save_job_description(
         self,
@@ -79,45 +169,62 @@ class OutputManager:
             encoding="utf-8",
         )
 
-    def save_salary(self, salary: str) -> None:
+    def save_salary(
+        self,
+        salary: str,
+    ) -> None:
 
         self.get_salary_path().write_text(
             salary or "",
             encoding="utf-8",
         )
 
-    def save_report(self, job: Job) -> None:
+    def save_analysis(
+        self,
+    ) -> None:
 
-        report = f"""# Job Report
+        job = self.job
 
-Company: {job.company}
-Position: {job.position}
-Location: {job.location}
-Salary: {job.salary}
+        analysis = f"""...
 
-Match: {job.match}
-Confidence: {job.confidence}
+## Company
+{job.company}
 
-Strength:
+## Position
+{job.position}
+
+## Location
+{job.location}
+
+## Salary
+{job.salary}
+
+## Match
+{job.match}
+
+## Confidence
+{job.confidence}
+
+## Strength
 {job.strength}
 
-Weak:
+## Weakness
 {job.weak}
 
-Reason:
+## Reason
 {job.reason}
 
-Recommendation:
+## Recommendation
 {job.recommendation}
 
-Next Action:
+## Next Action
 {job.next_action}
 
-Apply URL:
+## Apply URL
 {job.apply_url}
 """
 
-        self.get_report_path().write_text(
-            report,
+        self.get_analysis_path().write_text(
+            analysis,
             encoding="utf-8",
         )
