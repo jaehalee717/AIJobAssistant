@@ -1,7 +1,7 @@
 """
 modules/cv_generator.py
 AIJobAssistant
-Version : v1.5.0
+Version : v2.0.0
 """
 
 from __future__ import annotations
@@ -10,17 +10,24 @@ from pathlib import Path
 
 from docx import Document
 
+from modules.output_manager import OutputManager
+
 
 class CVGenerator:
     """CV Generator"""
 
-    def __init__(self, template_path: Path):
+    def __init__(
+        self,
+        template_path: Path,
+    ):
 
-        self.template_path = Path(template_path)
+        self.template_path = Path(
+            template_path,
+        )
 
     def generate(
         self,
-        output_path: Path,
+        output: OutputManager,
         profile: str,
         competencies: str,
         tai: str,
@@ -30,19 +37,13 @@ class CVGenerator:
         """
         Generate CV.
 
-        Args:
-            output_path : Output docx path
-            profile : Professional Profile
-            competencies : Core Competencies
-            tai : TAI experience
-            brazil : Brazil experience
-            spain : Spain experience
-
         Returns
             Saved docx path
         """
 
-        document = Document(self.template_path)
+        document = Document(
+            self.template_path,
+        )
 
         self._replace_after_heading(
             document,
@@ -74,12 +75,16 @@ class CVGenerator:
             spain,
         )
 
+        output_path = output.get_cv_docx_path()
+
         output_path.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
 
-        document.save(output_path)
+        document.save(
+            output_path,
+        )
 
         return output_path
 
@@ -92,7 +97,9 @@ class CVGenerator:
 
         paragraphs = document.paragraphs
 
-        for i, p in enumerate(paragraphs):
+        for i, p in enumerate(
+            paragraphs,
+        ):
 
             if p.text.strip().upper() != heading.upper():
                 continue
@@ -112,7 +119,9 @@ class CVGenerator:
 
         paragraphs = document.paragraphs
 
-        for i, p in enumerate(paragraphs):
+        for i, p in enumerate(
+            paragraphs,
+        ):
 
             if keyword.lower() not in p.text.lower():
                 continue

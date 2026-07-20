@@ -1,7 +1,7 @@
 """
 config.py
 AIJobAssistant
-Version : v0.9.0
+Version : v2.0.0
 """
 
 from pathlib import Path
@@ -48,3 +48,9 @@ COMPLETED_LABEL = "11구직진행중/구직분석_완료"
 # 검색 메일 갯수
 #MAX_MAILS = 20    #디버깅
 MAX_MAILS = 100  #실서비스
+
+# Templates
+TEMPLATE_DIR = PROJECT_ROOT / "templates"
+
+CV_TEMPLATE = TEMPLATE_DIR / "Jaeha_Lee_CV.docx"
+CL_TEMPLATE = TEMPLATE_DIR / "Jaeha_Lee_CL.docx"
