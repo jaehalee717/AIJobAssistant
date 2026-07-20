@@ -61,3 +61,42 @@ class AIGenerator:
         print()
 
         return prompt
+    
+    def generate_analysis(
+        self,
+        prompt: str,
+    ) -> str:
+        """
+        Copy Analysis prompt to clipboard.
+        """
+
+        self.copy_to_clipboard(prompt)
+
+        print()
+        print("=" * 80)
+        print("Analysis Prompt copied to Clipboard.")
+        print("Open ChatGPT and press Ctrl + V.")
+        print("=" * 80)
+        print()
+
+        return prompt
+
+
+    def generate_detail_analysis(
+        self,
+        prompt: str,
+    ) -> str:
+        """
+        Copy Detail Analysis prompt to clipboard.
+        """
+
+        self.copy_to_clipboard(prompt)
+
+        print()
+        print("=" * 80)
+        print("Detail Analysis Prompt copied to Clipboard.")
+        print("Open ChatGPT and press Ctrl + V.")
+        print("=" * 80)
+        print()
+
+        return prompt

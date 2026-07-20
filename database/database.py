@@ -44,6 +44,8 @@ class Database:
                 location TEXT,
                 description TEXT,
 
+                raw_html TEXT,
+
                 country TEXT,
                 city TEXT,
 

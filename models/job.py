@@ -1,3 +1,8 @@
+"""
+Job Model
+AIJobAssistant
+"""
+
 from dataclasses import dataclass, field
 
 
@@ -19,6 +24,7 @@ class Job:
 
     # Mail
     body: str = ""
+    raw_html: str = ""
     description: str = ""
     apply_url: str = ""
     urls: list = field(default_factory=list)

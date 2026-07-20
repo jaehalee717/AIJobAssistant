@@ -64,7 +64,15 @@ class OutputManager:
     def get_report_path(self) -> Path:
         return self.output_dir / "Report.md"
 
-    def save_job_description(self, html: str) -> None:
+    def save_job_description(
+        self,
+        html: str,
+    ) -> None:
+
+        if not html:
+            raise ValueError(
+                "HTML is empty."
+            )
 
         self.get_jd_html_path().write_text(
             html,

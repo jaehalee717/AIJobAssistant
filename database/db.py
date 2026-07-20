@@ -18,6 +18,8 @@ def initialize_database():
 
         location TEXT,
         description TEXT,
+                   
+        raw_html TEXT,
 
         country TEXT,
         city TEXT,
@@ -51,3 +53,6 @@ def initialize_database():
     conn.commit()
 
     conn.close()
+
+if __name__ == "__main__":
+    initialize_database()

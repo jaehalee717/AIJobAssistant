@@ -133,3 +133,119 @@ Requirements
         print("=" * 80)
 
         return prompt
+    
+    def build_analysis_prompt(
+        self,
+        job: Job,
+    ) -> str:
+        """
+        Build first analysis prompt.
+        """
+
+        knowledge = self.knowledge.get_many(
+            [
+                "career_library",
+                "apply_skip_rules",
+                "positioning_rules",
+                "quality_checklist",
+            ]
+        )
+
+        return f"""
+You are a senior IT recruiter and ATS evaluator.
+
+Analyze the following job.
+
+Company:
+{job.company}
+
+Position:
+{job.position}
+
+Location:
+{job.location}
+
+Job Description:
+{job.description}
+
+Knowledge:
+
+{knowledge}
+
+Tasks
+
+1. Calculate ATS Match Score (0-100)
+
+2. Decision
+- APPLY
+- REVIEW
+- SKIP
+
+3. Explain the top 5 reasons.
+
+Return JSON only.
+
+JSON Format
+
+{{
+    "score": 0,
+    "decision": "",
+    "reason": ""
+}}
+""".strip()
+
+
+    def build_detail_analysis_prompt(
+        self,
+        job: Job,
+    ) -> str:
+        """
+        Build detailed analysis prompt.
+        """
+
+        knowledge = self.knowledge.get_many(
+            [
+                "career_library",
+                "apply_skip_rules",
+                "positioning_rules",
+                "quality_checklist",
+            ]
+        )
+
+        return f"""
+You are a senior IT recruiter.
+
+Perform a detailed analysis.
+
+Company:
+{job.company}
+
+Position:
+{job.position}
+
+Location:
+{job.location}
+
+Job Description:
+{job.description}
+
+Knowledge:
+
+{knowledge}
+
+Requirements
+
+Evaluate:
+
+- Technical Fit
+- Management Fit
+- Leadership Fit
+- Industry Fit
+- Missing Skills
+- Risks
+- Recommendation
+- Interview Probability
+- Estimated ATS Match
+
+Return in clear Markdown.
+""".strip()

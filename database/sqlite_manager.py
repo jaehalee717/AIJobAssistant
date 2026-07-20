@@ -58,6 +58,8 @@ class SQLiteManager:
                 location,
                 description,
 
+                raw_html,
+
                 country,
                 city,
 
@@ -90,7 +92,7 @@ class SQLiteManager:
                 ?,?,?,?,?,?,
                 ?,?,?,?,?,?,
                 ?,?,?,?,?,?,
-                ?,?,?
+                ?,?,?,?
             )
             """,
             (
@@ -99,6 +101,8 @@ class SQLiteManager:
 
                 job.get("location"),
                 job.get("description"),
+
+                job.get("raw_html"),
 
                 job.get("country"),
                 job.get("city"),

@@ -1,12 +1,13 @@
 """
 application_workflow.py
 AIJobAssistant
-Version : v1.5.0
+Version : v1.5.2
 """
 
-from modules.workflow.job_processor import JobProcessor
+from modules.apply_service import ApplyService
 from modules.documents.report_generator import ReportGenerator
 from modules.repository.job_repository import JobRepository
+from modules.workflow.job_processor import JobProcessor
 
 
 class ApplicationWorkflow:
@@ -14,13 +15,21 @@ class ApplicationWorkflow:
     def __init__(self):
 
         self.repository = JobRepository()
-        self.report = ReportGenerator("reports")
+
+        self.report = ReportGenerator(
+            "reports",
+        )
+
+        self.apply_service = ApplyService()
 
         self.processed = 0
         self.skipped = 0
         self.failed = 0
 
-    def run(self, jobs):
+    def run(
+        self,
+        jobs,
+    ):
 
         for job in jobs:
 
@@ -28,12 +37,16 @@ class ApplicationWorkflow:
 
                 if (
                     job.apply_url
-                    and self.repository.exists(job.apply_url)
+                    and self.repository.exists(
+                        job.apply_url,
+                    )
                 ):
                     self.skipped += 1
                     continue
 
-                self.repository.insert(job)
+                self.repository.insert(
+                    job,
+                )
 
                 job, result = JobProcessor.process(
                     job,
@@ -44,13 +57,27 @@ class ApplicationWorkflow:
                     self.skipped += 1
                     continue
 
-                self.repository.update(job)
+                self.repository.update(
+                    job,
+                )
 
-                self.report.generate(job)
+                self.report.generate(
+                    job,
+                )
+
+                if job.decision in (
+                    "APPLY",
+                    "REVIEW",
+                ):
+                    self.apply_service.run(
+                        job,
+                    )
 
                 self.processed += 1
 
-            except Exception:
+            except Exception as e:
+
+                print(e)
 
                 self.failed += 1
 

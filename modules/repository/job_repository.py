@@ -54,6 +54,8 @@ class JobRepository:
                     location,
                     description,
 
+                    raw_html,
+
                     country,
                     city,
 
@@ -69,7 +71,7 @@ class JobRepository:
                     date
                 )
                 VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     job.company,
@@ -77,6 +79,8 @@ class JobRepository:
 
                     job.location,
                     job.description,
+
+                    job.raw_html,
 
                     job.country,
                     job.city,
@@ -178,6 +182,7 @@ class JobRepository:
 
             job.description = row["description"]
 
+            job.raw_html = row["raw_html"]
 
             job.country = row["country"]
 
@@ -236,3 +241,142 @@ class JobRepository:
             )
 
             conn.commit()
+
+    def get_new_jobs(
+        self,
+    ) -> list[Job]:
+
+        with sqlite3.connect(self.db) as conn:
+
+            conn.row_factory = sqlite3.Row
+
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT *
+                FROM jobs
+                WHERE status='NEW'
+                ORDER BY id
+                """
+            )
+
+            rows = cur.fetchall()
+
+        jobs = []
+
+        for row in rows:
+
+            job = Job()
+
+            job.company = row["company"]
+            job.position = row["position"]
+
+            job.location = row["location"]
+            job.description = row["description"]
+
+            job.raw_html = row["raw_html"]
+
+            job.country = row["country"]
+            job.city = row["city"]
+
+            job.salary = row["salary"]
+
+            job.apply_url = row["url"]
+
+            job.match = row["ai_score"]
+            job.decision = row["ai_decision"]
+
+            job.reason = row["reason"]
+
+            jobs.append(job)
+
+        return jobs
+
+
+    def get_jobs_by_status(
+        self,
+        status: str,
+    ) -> list[Job]:
+
+        with sqlite3.connect(self.db) as conn:
+
+            conn.row_factory = sqlite3.Row
+
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT *
+                FROM jobs
+                WHERE status=?
+                ORDER BY id
+                """,
+                (status,),
+            )
+
+            rows = cur.fetchall()
+
+        jobs = []
+
+        for row in rows:
+
+            job = Job()
+
+            job.company = row["company"]
+            job.position = row["position"]
+
+            job.location = row["location"]
+
+            job.apply_url = row["url"]
+
+            job.match = row["ai_score"]
+            job.decision = row["ai_decision"]
+
+            jobs.append(job)
+
+        return jobs
+
+
+    def get_job_by_id(
+        self,
+        job_id: int,
+    ) -> Job | None:
+
+        with sqlite3.connect(self.db) as conn:
+
+            conn.row_factory = sqlite3.Row
+
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT *
+                FROM jobs
+                WHERE id=?
+                """,
+                (job_id,),
+            )
+
+            row = cur.fetchone()
+
+        if row is None:
+            return None
+
+        job = Job()
+
+        job.company = row["company"]
+        job.position = row["position"]
+
+        job.location = row["location"]
+
+        job.description = row["description"]
+
+        job.apply_url = row["url"]
+
+        job.match = row["ai_score"]
+        job.decision = row["ai_decision"]
+
+        job.reason = row["reason"]
+
+        return job

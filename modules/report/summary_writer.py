@@ -1,55 +1,46 @@
 """
-summary_writer.py
+modules/report/summary_writer.py
+
 AIJobAssistant
-Version : v1.2.2
+Version : v2.0.0
 """
 
-from docx.shared import Pt
+from __future__ import annotations
 
-from models.job import Job
-from utils.word_helper import add_hyperlink
+from docx.document import Document
 
 
 class SummaryWriter:
+    """분석 요약 작성."""
 
     @staticmethod
-    def write(doc, job: Job):
+    def write(
+        document: Document,
+        jobs,
+    ) -> None:
 
-        doc.add_heading(
-            "JOB SUMMARY",
-            level=3,
+        total = len(jobs)
+
+        recommended = sum(
+            1
+            for job in jobs
+            if getattr(job, "recommendation", "").upper()
+            in ("APPLY", "RECOMMENDED", "YES")
         )
 
-        table = doc.add_table(
-            rows=0,
-            cols=2,
+        document.add_heading(
+            "Summary",
+            level=1,
         )
 
-        table.style = "Table Grid"
+        document.add_paragraph(
+            f"Total Jobs : {total}"
+        )
 
-        def add_row(name: str, value):
+        document.add_paragraph(
+            f"Recommended : {recommended}"
+        )
 
-            cells = table.add_row().cells
-            cells[0].text = name
-            cells[1].text = "" if value is None else str(value)
-
-        add_row("Company", job.company)
-        add_row("Position", job.position)
-        add_row("Portal", job.portal)
-        add_row("Location", job.location)
-        add_row("Employment", job.employment_type)
-        add_row("Remote", job.remote)
-        add_row("Salary", job.salary)
-
-        cells = table.add_row().cells
-        cells[0].text = "Apply URL"
-
-        if job.apply_url:
-
-            add_hyperlink(
-                cells[1].paragraphs[0],
-                "Open Job Posting",
-                job.apply_url,
-            )
-
-        doc.add_paragraph()
+        document.add_paragraph(
+            f"Not Recommended : {total - recommended}"
+        )

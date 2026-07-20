@@ -1,7 +1,7 @@
 """
 LinkedIn Extractor
 AIJobAssistant
-Version : v1.5.7
+Version : v1.5.8
 """
 
 from models.job import Job
@@ -22,14 +22,11 @@ class LinkedInExtractor:
         )
         self.parser = LinkedInParser()
 
-    def extract(
+    def extract_html(
         self,
-        url: str,
+        html: str,
+        url: str = "",
     ) -> Job:
-
-        html = self.downloader.download(
-            url,
-        )
 
         jd = self.parser.extract_jd(
             html,
@@ -37,19 +34,24 @@ class LinkedInExtractor:
 
         job = Job()
 
+        job.raw_html = html
         job.apply_url = url
+
         job.company = jd.get(
             "company",
             "",
         )
+
         job.position = jd.get(
             "position",
             "",
         )
+
         job.location = jd.get(
             "location",
             "",
         )
+
         job.description = jd.get(
             "description",
             "",
@@ -65,3 +67,17 @@ class LinkedInExtractor:
             )
 
         return job
+
+    def extract(
+        self,
+        url: str,
+    ) -> Job:
+
+        html = self.downloader.download(
+            url,
+        )
+
+        return self.extract_html(
+            html=html,
+            url=url,
+        )

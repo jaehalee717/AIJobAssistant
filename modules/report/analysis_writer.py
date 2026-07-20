@@ -1,52 +1,47 @@
 """
-analysis_writer.py
+modules/report/analysis_writer.py
+
 AIJobAssistant
-Version : v1.2.2
+Version : v2.0.0
 """
 
-from models.job import Job
+from __future__ import annotations
+
+from docx.document import Document
+
+from .table_builder import TableBuilder
 
 
 class AnalysisWriter:
+    """1차 분석 결과 작성."""
 
     @staticmethod
-    def write(doc, job: Job):
+    def write(
+        document: Document,
+        jobs,
+    ) -> None:
 
-        doc.add_heading(
-            "AI ANALYSIS",
-            level=3,
+        document.add_heading(
+            "Job Analysis",
+            level=1,
         )
 
-        table = doc.add_table(
-            rows=0,
-            cols=2,
+        headers, rows = TableBuilder.build(
+            jobs
+        )
+
+        table = document.add_table(
+            rows=1,
+            cols=len(headers),
         )
 
         table.style = "Table Grid"
 
-        def add_row(name: str, value):
+        for col, header in enumerate(headers):
+            table.rows[0].cells[col].text = header
 
+        for row in rows:
             cells = table.add_row().cells
-            cells[0].text = name
-            cells[1].text = "" if value is None else str(value)
 
-        add_row("Overall Match", job.match)
-        add_row("Total Score", job.total_score)
-        add_row("Confidence", job.confidence)
-        add_row("Decision", job.decision)
-
-        add_row("Career Score", job.career_score)
-        add_row("Role Score", job.role_score)
-        add_row("Leadership Score", job.leadership_score)
-        add_row("Security Score", job.security_score)
-        add_row("Salary Score", job.salary_score)
-        add_row("Location Score", job.location_score)
-        add_row("Language Score", job.language_score)
-
-        add_row("Strengths", job.strength)
-        add_row("Weaknesses", job.weak)
-        add_row("Reason", job.reason)
-        add_row("Recommendation", job.recommendation)
-        add_row("Next Action", job.next_action)
-
-        doc.add_paragraph()
+            for col, value in enumerate(row):
+                cells[col].text = value

@@ -1,28 +1,49 @@
 """
 Extractor Test
+AIJobAssistant
 """
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(
+    0,
+    str(ROOT),
+)
 
 from modules.linkedin.extractor import LinkedInExtractor
 
-TEST_URL = (
-    "https://www.linkedin.com/comm/jobs/view/4439656677/"
+
+SAMPLE = (
+    ROOT
+    / "tests"
+    / "samples"
+    / "linkedin_job_page.html"
 )
+
 
 def main():
 
-    job = LinkedInExtractor(
-        headless=False,
-    ).extract(
-        URL,
+    html = SAMPLE.read_text(
+        encoding="utf-8",
     )
 
-    print("=" * 80)
-    print("Company   :", job.company)
-    print("Position  :", job.position)
-    print("Location  :", job.location)
-    print("Description")
-    print("-" * 80)
-    print(job.description[:300])
+    extractor = LinkedInExtractor()
+
+    job = extractor.extract_html(
+        html=html,
+        url="https://www.linkedin.com/jobs/view/test",
+    )
+
+    assert job.company
+    assert job.position
+    assert job.description
+    assert job.raw_html == html
+
+    print("PASS")
+    print(job.company)
+    print(job.position)
 
 
 if __name__ == "__main__":
