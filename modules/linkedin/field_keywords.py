@@ -1,0 +1,95 @@
+"""
+modules/linkedin/field_keywords.py
+
+LinkedIn Field Keywords
+Version : v1.4.0
+"""
+
+TITLE_KEYWORDS = (
+    "manager",
+    "lead",
+    "director",
+    "engineer",
+    "architect",
+    "consultant",
+    "analyst",
+    "administrator",
+    "specialist",
+    "officer",
+    "security",
+    "cyber",
+    "infrastructure",
+    "operations",
+    "operation",
+    "delivery",
+    "service",
+    "network",
+    "cloud",
+    "workplace",
+    "project",
+    "program",
+    "governance",
+    "risk",
+    "compliance",
+    "developer",
+    "devops",
+    "platform",
+    "systems",
+    "software",
+    "it",
+    "technology",
+)
+
+LOCATION_KEYWORDS = (
+    "remote",
+    "hybrid",
+    "on-site",
+    "metropolitan area",
+    "region",
+    "province",
+    "state",
+)
+
+COUNTRY_WORDS = (
+    "spain",
+    "germany",
+    "france",
+    "italy",
+    "portugal",
+    "netherlands",
+    "belgium",
+    "sweden",
+    "norway",
+    "denmark",
+    "finland",
+    "ireland",
+    "poland",
+    "uk",
+    "united kingdom",
+    "usa",
+)
+
+NOISE_WORDS = (
+    "connections",
+    "connection",
+    "applicant",
+    "applicants",
+    "easy apply",
+    "saved",
+    "promoted",
+    "remote",
+    "hybrid",
+    "on-site",
+    "onsite",
+    "full-time",
+    "part-time",
+    "contract",
+    "internship",
+    "hour",
+    "hours",
+    "week",
+    "weeks",
+    "month",
+    "months",
+    "ago",
+)

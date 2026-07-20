@@ -2,7 +2,7 @@
 modules/job_extractor.py
 
 Job Extractor
-Version : v1.1.0
+Version : v1.2.0
 """
 
 from modules.rules.linkedin_rule import LinkedInRule
@@ -14,9 +14,11 @@ class JobExtractor:
     def extract(mail):
 
         if mail is None:
-            return []
+            return None
 
         if mail.portal == "LinkedIn Job Alerts":
-            return LinkedInRule().extract(mail)
+            return LinkedInRule().extract(
+                mail,
+            )
 
-        return []
+        return None

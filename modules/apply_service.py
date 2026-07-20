@@ -129,10 +129,16 @@ class ApplyService:
     @staticmethod
     def get_clipboard() -> str:
 
+        print("Opening Tk...")
+
         root = tk.Tk()
         root.withdraw()
 
+        print("Reading clipboard...")
+
         text = root.clipboard_get()
+
+        print("Clipboard successfully read.")
 
         root.destroy()
 
@@ -150,9 +156,17 @@ class ApplyService:
         print("Press ENTER.")
         print("=" * 80)
 
-        input()
+        value = input()
 
-        return self.get_clipboard()
+        print(f"input() returned: {repr(value)}")
+        print("Reading clipboard...")
+
+        text = self.get_clipboard()
+
+        print(f"Clipboard length: {len(text)}")
+        print("Clipboard read completed.")
+
+        return text
 
     @staticmethod
     def load_ready_job() -> Job:
@@ -185,5 +199,7 @@ class ApplyService:
 
         job.salary = row.get("salary", "")
         job.apply_url = row.get("url", "")
+
+        job.description = row.get("description", "")
 
         return job

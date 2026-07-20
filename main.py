@@ -19,7 +19,21 @@ def main():
 
     jobs = MailWorkflow.run()
 
-    report = ApplicationWorkflow().run(jobs)
+    print(f"Jobs: {len(jobs)}")
+
+    for job in jobs:
+        print("=" * 80)
+
+        print(job.company.encode("cp949", errors="replace").decode("cp949"))
+        print(job.position.encode("cp949", errors="replace").decode("cp949"))
+        print(job.location.encode("cp949", errors="replace").decode("cp949"))
+        print(job.apply_url)
+
+    #return
+
+    report = ApplicationWorkflow().run(
+        jobs,
+    )
 
     print()
     print("=" * 80)

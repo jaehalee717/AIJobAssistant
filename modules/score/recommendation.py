@@ -19,6 +19,8 @@ class Recommendation:
         if score >= 90:
 
             job.decision = "APPLY"
+            job.status = "READY_TO_APPLY"
+
             job.confidence = "Very High"
             job.recommendation = "★★★★★ Strong Apply"
             job.next_action = "Apply Immediately"
@@ -26,6 +28,8 @@ class Recommendation:
         elif score >= 75:
 
             job.decision = "APPLY"
+            job.status = "READY_TO_APPLY"
+
             job.confidence = "High"
             job.recommendation = "★★★★☆ Apply"
             job.next_action = "Apply Today"
@@ -33,6 +37,8 @@ class Recommendation:
         elif score >= 60:
 
             job.decision = "REVIEW"
+            job.status = "READY_TO_APPLY"
+
             job.confidence = "Medium"
             job.recommendation = "★★★☆☆ Manual Review"
             job.next_action = "Review Carefully"
@@ -40,6 +46,8 @@ class Recommendation:
         else:
 
             job.decision = "SKIP"
+            job.status = "SKIP"
+            
             job.confidence = "Low"
             job.recommendation = "★☆☆☆☆ Skip"
             job.next_action = "Skip"

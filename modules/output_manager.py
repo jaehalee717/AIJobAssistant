@@ -1,7 +1,7 @@
 """
 modules/output_manager.py
 AIJobAssistant
-Version : v1.5.0
+Version : v1.5.1
 """
 
 from __future__ import annotations
@@ -27,9 +27,9 @@ class OutputManager:
         position = self._sanitize(job.position)
         country = self._sanitize(job.country)
 
-        folder = f"{company}_{position}_{country}_{date}"
+        self.folder_name = f"{company}_{position}_{country}_{date}"
 
-        self.output_dir = OUTPUT_DIR / today / folder
+        self.output_dir = OUTPUT_DIR / today / self.folder_name
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
@@ -56,7 +56,7 @@ class OutputManager:
         return self.output_dir / "Jaeha_Lee_CL.pdf"
 
     def get_jd_html_path(self) -> Path:
-        return self.output_dir / "Job_Description.html"
+        return self.output_dir / f"{self.folder_name}.html"
 
     def get_salary_path(self) -> Path:
         return self.output_dir / "Salary.txt"

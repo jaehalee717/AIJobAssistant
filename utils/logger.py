@@ -67,6 +67,13 @@ def configure_logging():
 
 configure_logging()
 
+def get_logger(
+    name: str,
+):
+    return logging.getLogger(
+        name,
+    )
+
 logger = logging.getLogger(
     "AIJobAssistant"
 )

@@ -1,32 +1,53 @@
 """
-modules/linkedin/constants.py
-
 LinkedIn Constants
-Version : v1.2.0
+AIJobAssistant
+Version : v1.5.6
 """
 
-from __future__ import annotations
+from pathlib import Path
 
-import re
 
-PORTAL_NAME = "LinkedIn Job Alerts"
+PROFILE_DIR = Path("profiles") / "linkedin"
 
-FIELD_COUNT = 3
+HTML_DIR = Path("output") / "linkedin"
 
-POSITION_INDEX = 2
-COMPANY_INDEX = 1
-LOCATION_INDEX = 0
-VIEW_JOB_PREFIX = "View job:"
+DEFAULT_HTML = HTML_DIR / "linkedin_page.html"
 
-IGNORE_LINES = {
-    "",
-    "Fast growing",
-    "Top applicant",
-    "Apply with resume & profile",
-    "This company is actively hiring",
+PAGE_TIMEOUT = 60000
+
+WAIT_TIMEOUT = 3000
+
+VIEWPORT = {
+    "width": 1600,
+    "height": 1200,
 }
 
-URL_PATTERN = re.compile(
-    r"^View job:\s*(https://\S+)",
-    re.IGNORECASE,
+SCROLL_WAIT = 1000
+
+MAX_SCROLLS = 20
+
+LINKEDIN_JOB_URL_PREFIXES = (
+    "https://www.linkedin.com/jobs/view/",
+    "https://www.linkedin.com/comm/jobs/view/",
+    "https://linkedin.com/jobs/view/",
 )
+
+MAX_RETRIES = 3
+
+RETRY_WAIT = 2000
+
+HEADLESS = False
+
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/138.0.0.0 Safari/537.36"
+)
+
+LOCALE = "en-US"
+
+TIMEZONE = "Europe/Madrid"
+
+EXTRA_HTTP_HEADERS = {
+    "Accept-Language": "en-US,en;q=0.9",
+}

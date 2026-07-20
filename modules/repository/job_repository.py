@@ -104,7 +104,7 @@ class JobRepository:
 
         status_map = {
             "APPLY": "READY_TO_APPLY",
-            "REVIEW": "REVIEW",
+            "REVIEW": "READY_TO_APPLY",
             "SKIP": "SKIPPED",
             "REJECT": "REJECTED",
         }

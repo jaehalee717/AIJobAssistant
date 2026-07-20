@@ -50,7 +50,18 @@ def authenticate():
             and creds.refresh_token
         ):
 
-            creds.refresh(Request())
+            try:
+
+                creds.refresh(
+                    Request(),
+                )
+
+            except Exception:
+
+                creds = None
+
+                if TOKEN_FILE.exists():
+                    TOKEN_FILE.unlink()
 
         else:
 
