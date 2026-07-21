@@ -44,7 +44,7 @@ class JobRepository:
 
         with sqlite3.connect(self.db) as conn:
 
-            conn.execute(
+            cursor = conn.execute(
                 """
                 INSERT OR IGNORE INTO jobs
                 (
@@ -98,6 +98,8 @@ class JobRepository:
                 ),
             )
 
+            job.id = cursor.lastrowid
+
             conn.commit()
 
 
@@ -107,15 +109,15 @@ class JobRepository:
     ):
 
         status_map = {
-            "APPLY": "READY_TO_APPLY",
-            "REVIEW": "READY_TO_APPLY",
+            "APPLY": "READY_TO_DETAIL",
+            "REVIEW": "READY_TO_DETAIL",
             "SKIP": "SKIPPED",
             "REJECT": "REJECTED",
         }
 
         status = status_map.get(
             job.decision,
-            "REVIEW",
+            "READY_TO_DETAIL",
         )
 
 
@@ -170,34 +172,22 @@ class JobRepository:
 
                 return None
 
-
             job = Job()
-
+            job.id = row["id"]
             job.company = row["company"]
-
             job.position = row["position"]
-
-
             job.location = row["location"]
-
             job.description = row["description"]
-
             job.raw_html = row["raw_html"]
-
             job.country = row["country"]
-
             job.city = row["city"]
-
-
             job.salary = row["salary"]
-
             job.apply_url = row["url"]
-
             job.reason = row["reason"]
-
+            job.match = row["ai_score"]
+            job.decision = row["ai_decision"]
 
             return job
-
 
     def update_applied(
         self,
@@ -269,6 +259,8 @@ class JobRepository:
 
             job = Job()
 
+            job.id = row["id"]
+
             job.company = row["company"]
             job.position = row["position"]
 
@@ -322,17 +314,19 @@ class JobRepository:
         for row in rows:
 
             job = Job()
-
+            job.id = row["id"]
             job.company = row["company"]
             job.position = row["position"]
-
             job.location = row["location"]
-
+            job.description = row["description"]
+            job.raw_html = row["raw_html"]
+            job.country = row["country"]
+            job.city = row["city"]
+            job.salary = row["salary"]
             job.apply_url = row["url"]
-
             job.match = row["ai_score"]
             job.decision = row["ai_decision"]
-
+            job.reason = row["reason"]
             jobs.append(job)
 
         return jobs
@@ -365,6 +359,15 @@ class JobRepository:
 
         job = Job()
 
+        job.id = row["id"]
+
+        job.raw_html = row["raw_html"]
+
+        job.country = row["country"]
+        job.city = row["city"]
+
+        job.salary = row["salary"]
+
         job.company = row["company"]
         job.position = row["position"]
 
@@ -380,3 +383,63 @@ class JobRepository:
         job.reason = row["reason"]
 
         return job
+
+    def get_jobs_by_ids(
+        self,
+        job_ids: list[int],
+    ) -> list[Job]:
+
+        if not job_ids:
+            return []
+
+        jobs = []
+
+        for job_id in job_ids:
+
+            job = self.get_job_by_id(
+                job_id,
+            )
+
+            if job is not None:
+                jobs.append(
+                    job,
+                )
+
+        return jobs
+    
+    def mark_ready_to_detail(
+        self,
+        job_id: int,
+    ) -> None:
+
+        with sqlite3.connect(self.db) as conn:
+
+            conn.execute(
+                """
+                UPDATE jobs
+                SET status='READY_TO_DETAIL'
+                WHERE id=?
+                """,
+                (job_id,),
+            )
+
+            conn.commit()
+
+
+    def mark_detail_completed(
+        self,
+        job_id: int,
+    ) -> None:
+
+        with sqlite3.connect(self.db) as conn:
+
+            conn.execute(
+                """
+                UPDATE jobs
+                SET status='DETAIL_COMPLETED'
+                WHERE id=?
+                """,
+                (job_id,),
+            )
+
+            conn.commit()

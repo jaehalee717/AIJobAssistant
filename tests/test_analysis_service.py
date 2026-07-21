@@ -1,17 +1,53 @@
-from modules.analysis.service import AnalysisService
+"""
+tests/test_analysis_service.py
+AIJobAssistant
+Version : v2.0.0
+"""
+
 from models.job import Job
+from modules.analysis.service import AnalysisService
 
 
-def test_analysis():
+class DummyPromptBuilder:
 
-    job = Job()
+    def build_analysis_prompt(
+        self,
+        job,
+    ):
+        return "PROMPT"
 
-    job.match = 90
 
-    service = AnalysisService()
+class DummyAI:
 
-    result = service.analyze(
-        [job]
+    def generate_analysis(
+        self,
+        prompt,
+    ):
+        self.prompt = prompt
+
+
+class DummyRepository:
+
+    def __init__(self):
+        self.updated = False
+
+    def update(
+        self,
+        job,
+    ):
+        self.updated = True
+
+
+def test_create_prompt():
+
+    service = AnalysisService(
+        DummyPromptBuilder(),
+        DummyAI(),
+        DummyRepository(),
     )
 
-    assert result[0].decision == "APPLY"
+    prompt = service.create_prompt(
+        Job(),
+    )
+
+    assert prompt == "PROMPT"

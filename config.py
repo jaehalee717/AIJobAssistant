@@ -30,7 +30,7 @@ LOG_DIR = SYSTEM_ROOT / "Logs"
 
 #OPENAI_CONFIG = CONFIG_DIR / "openai.json"
 
-REPORT_DIR = SYSTEM_ROOT / "Reports"
+REPORT_DIR = PROJECT_ROOT / "Reports"
 JOB_REPORT_DIR = REPORT_DIR / "JobReports"
 COMPLETED_REPORT_DIR = REPORT_DIR / "Completed"
 ARCHIVE_REPORT_DIR = REPORT_DIR / "Archive"
@@ -46,8 +46,8 @@ JOB_LABEL = "11구직진행중/구직분석"
 COMPLETED_LABEL = "11구직진행중/구직분석_완료"
 
 # 검색 메일 갯수
-#MAX_MAILS = 20    #디버깅
-MAX_MAILS = 100  #실서비스
+MAX_MAILS = 5    #디버깅
+#MAX_MAILS = 100  #실서비스
 
 # Templates
 TEMPLATE_DIR = PROJECT_ROOT / "templates"

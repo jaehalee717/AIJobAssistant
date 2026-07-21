@@ -1,7 +1,7 @@
 """
 CV Service
 AIJobAssistant
-Version : v1.5.4
+Version : v2.0.0
 """
 
 from modules.apply.clipboard_service import ClipboardService
@@ -26,44 +26,25 @@ class CVService:
         self,
         job,
         output,
-    ):
-
-        print("CV STEP 1")
+    ) -> None:
 
         prompt = self.prompt_builder.build_cv_prompt(
             job,
         )
 
-        print("CV STEP 2")
-
         self.ai.generate_cv(
             prompt,
         )
-
-        print("CV STEP 3")
-
-        print()
-        print("=" * 80)
-        print("Copy ChatGPT CV response (Ctrl+A, Ctrl+C)...")
-        print("Waiting automatically...")
-        print("=" * 80)
 
         cv_text = self.clipboard.wait_changed(
             prompt,
         )
 
-        print("CV STEP 4")
-        print(
-            f"CV length: {len(cv_text)}"
-        )
-
         self.cv_generator.generate(
-            output_path=output.get_cv_docx_path(),
+            output=output,
             profile=cv_text,
             competencies="",
             tai="",
             brazil="",
             spain="",
         )
-
-        print("CV STEP 5")

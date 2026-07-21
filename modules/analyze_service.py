@@ -1,11 +1,12 @@
 """
 modules/analyze_service.py
 AIJobAssistant
-Version : v1.5.0
+Version : v2.0.0
 """
 
 from database.db import initialize_database
 
+from modules.console import console
 from modules.gmail_auth import authenticate
 from modules.workflow.mail_workflow import MailWorkflow
 from modules.workflow.application_workflow import ApplicationWorkflow
@@ -13,12 +14,18 @@ from modules.workflow.application_workflow import ApplicationWorkflow
 
 class AnalyzeService:
 
-    def run(self):
+    def run(
+        self,
+    ):
 
-        print("=" * 80)
-        print("AIJobAssistant v1.5.0")
-        print("Analyze")
-        print("=" * 80)
+        console.clear()
+
+        console.header(
+            step="1/3",
+            title="Analyze",
+            current=1,
+            total=3,
+        )
 
         initialize_database()
 
@@ -26,10 +33,14 @@ class AnalyzeService:
 
         jobs = MailWorkflow.run()
 
-        report = ApplicationWorkflow().run(jobs)
+        report = ApplicationWorkflow().run(
+            jobs,
+        )
 
-        print()
-        print("=" * 80)
-        print("Completed")
-        print("=" * 80)
-        print(report)
+        console.success(
+            "Analysis completed."
+        )
+
+        console.info(
+            report,
+        )

@@ -228,3 +228,45 @@ class OutputManager:
             analysis,
             encoding="utf-8",
         )
+
+    # ------------------------------------------------------------------
+    # Generic
+    # ------------------------------------------------------------------
+
+    def write_text(
+        self,
+        filename: str,
+        content: str,
+    ) -> Path:
+
+        path = (
+            self.output_dir
+            / filename
+        )
+
+        path.write_text(
+            content,
+            encoding="utf-8",
+        )
+
+        return path
+
+    def exists(
+        self,
+        filename: str,
+    ) -> bool:
+
+        return (
+            self.output_dir
+            / filename
+        ).exists()
+
+    def path(
+        self,
+        filename: str,
+    ) -> Path:
+
+        return (
+            self.output_dir
+            / filename
+        )

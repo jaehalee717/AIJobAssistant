@@ -100,3 +100,31 @@ class AIGenerator:
         print()
 
         return prompt
+    
+    def read_response(self) -> str:
+        """
+        Read pasted AI response from console.
+        Finish with Ctrl+Z then Enter (Windows).
+        """
+
+        print("Paste AI response.")
+        print("Press Ctrl+Z then Enter when finished.")
+        print()
+
+        lines = []
+
+        while True:
+            try:
+                line = input()
+            except EOFError:
+                break
+
+            lines.append(line)
+
+        response = "\n".join(lines).strip()
+
+        print()
+        print(f"Response length: {len(response)} characters")
+        print()
+
+        return response

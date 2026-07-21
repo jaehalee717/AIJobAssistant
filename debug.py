@@ -17,11 +17,17 @@ DEBUG = True
 TEST_PORTAL = "LinkedIn Job Alerts"
 
 # ==========================================================
+# Detail Workflow
+# ==========================================================
+UPDATE_DETAIL_STATUS = False
+AUTO_SELECT_FIRST_JOB = True
+
+# ==========================================================
 # Gmail
 # ==========================================================
 
 MOVE_COMPLETED_LABEL = False
-MAX_MAILS = 20
+MAX_MAILS = 5
 
 STOP_AFTER_FIRST_JOB = False
 

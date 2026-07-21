@@ -1,10 +1,11 @@
 """
 modules/apply_workflow.py
 AIJobAssistant
-Version : v2.0
+Version : v2.1.0
 """
 
 from modules.console import console
+from modules.output_manager import OutputManager
 
 
 class ApplyWorkflow:
@@ -12,111 +13,106 @@ class ApplyWorkflow:
     def __init__(
         self,
         repository,
-        prompt_builder,
-        ai_generator,
-        parser,
-        apply_service,
+        cv_service,
+        cl_service,
+        output_service,
     ):
+
         self.repository = repository
-        self.prompt_builder = prompt_builder
-        self.ai_generator = ai_generator
-        self.parser = parser
-        self.apply_service = apply_service
+        self.cv_service = cv_service
+        self.cl_service = cl_service
+        self.output_service = output_service
 
-    def run(self) -> None:
+    def run(
+        self,
+    ) -> None:
 
-        jobs = self.repository.get_ready_to_apply()
+        jobs = self.repository.get_jobs_by_status(
+            "READY_TO_APPLY",
+        )
 
-        total = len(jobs)
+        if not jobs:
 
-        if total == 0:
-            console.warning("No jobs.")
+            console.warning(
+                "No READY_TO_APPLY jobs."
+            )
+
             return
-
-        for current, job in enumerate(jobs, start=1):
-            self._process_job(
-                job,
-                current,
-                total,
-            )
-
-    def _process_job(
-        self,
-        job,
-        current: int,
-        total: int,
-    ) -> None:
-
-        self._show_screen(
-            job,
-            current,
-            total,
-        )
-
-        prompt = self.prompt_builder.build_detail_analysis_prompt(
-            job,
-        )
-
-        self.ai_generator.send(
-            prompt,
-        )
-
-        console.action(
-            "ChatGPT(Ctrl+V → 응답복사) | AIJobAssistant(Ctrl+V → ENTER)"
-        )
-
-        self._wait_for_user()
-
-        response = self.ai_generator.read_response()
-
-        result = self.parser.parse(
-            response,
-        )
-
-        self.repository.save_detail_result(
-            job.id,
-            result,
-        )
-
-        if result.apply:
-
-            self.apply_service.run(
-                job,
-            )
-
-            self.repository.mark_ready_for_apply(
-                job.id,
-            )
-        else:
-
-            self.repository.mark_skipped(
-                job.id,
-            )
-
-    def _show_screen(
-        self,
-        job,
-        current: int,
-        total: int,
-    ) -> None:
 
         console.clear()
 
         console.header(
-            step="2/6",
-            title="Detail Analysis",
-            current=current,
-            total=total,
+            step="3/3",
+            title="Apply",
+            current=1,
+            total=3,
         )
 
-        console.job(
-            job,
+        for job in jobs:
+
+            console.job(
+                job,
+            )
+
+        print()
+
+        job_ids = [
+            int(x.strip())
+            for x in input(
+                "Job No : "
+            ).split(",")
+            if x.strip()
+        ]
+
+        selected_jobs = self.repository.get_jobs_by_ids(
+            job_ids,
         )
 
-        console.progress(
-            current=current,
-            total=total,
+        total = len(
+            selected_jobs,
         )
 
-    def _wait_for_user(self) -> None:
-      input()
+        for current, job in enumerate(
+            selected_jobs,
+            start=1,
+        ):
+
+            console.clear()
+
+            console.header(
+                step="3/3",
+                title="Apply",
+                current=current,
+                total=total,
+            )
+
+            console.job(
+                job,
+            )
+
+            output = OutputManager(
+                job,
+            )
+
+            self.cv_service.run(
+                job,
+                output,
+            )
+
+            self.cl_service.run(
+                job,
+                output,
+            )
+
+            self.output_service.run(
+                job,
+                output,
+            )
+
+            self.repository.update_applied(
+                job.apply_url,
+            )
+
+        console.success(
+            "Apply completed."
+        )

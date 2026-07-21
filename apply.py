@@ -1,7 +1,7 @@
 """
 apply.py
 AIJobAssistant
-Version : v1.5.0
+Version : v2.0.0
 """
 
 from modules.apply_service import ApplyService

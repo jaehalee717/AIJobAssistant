@@ -1,7 +1,7 @@
 """
 CL Service
 AIJobAssistant
-Version : v1.5.4
+Version : v2.0.0
 """
 
 from modules.apply.clipboard_service import ClipboardService
@@ -26,40 +26,21 @@ class CLService:
         self,
         job,
         output,
-    ):
-
-        print("CL STEP 1")
+    ) -> None:
 
         prompt = self.prompt_builder.build_cl_prompt(
             job,
         )
 
-        print("CL STEP 2")
-
         self.ai.generate_cl(
             prompt,
         )
-
-        print("CL STEP 3")
-
-        print()
-        print("=" * 80)
-        print("Copy ChatGPT Cover Letter response (Ctrl+A, Ctrl+C)...")
-        print("Waiting automatically...")
-        print("=" * 80)
 
         cl_text = self.clipboard.wait_changed(
             prompt,
         )
 
-        print("CL STEP 4")
-        print(
-            f"CL length: {len(cl_text)}"
-        )
-
         self.cl_generator.generate(
-            output_path=output.get_cl_docx_path(),
+            output=output,
             letter=cl_text,
         )
-
-        print("CL STEP 5")

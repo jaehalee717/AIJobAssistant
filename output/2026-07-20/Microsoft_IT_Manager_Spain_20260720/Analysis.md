@@ -13,10 +13,10 @@ Madrid
 €70,000
 
 ## Match
-92
+95
 
 ## Confidence
-95
+98
 
 ## Strength
 Infrastructure
@@ -25,13 +25,13 @@ Infrastructure
 Azure
 
 ## Reason
-Strong overall fit.
+Good Fit
 
 ## Recommendation
 Apply
 
 ## Next Action
-Generate CV
+Generate
 
 ## Apply URL
-https://example.com
+

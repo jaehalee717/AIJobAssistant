@@ -1,7 +1,7 @@
 """
 Output Service
 AIJobAssistant
-Version : v1.5.2
+Version : v2.0.0
 """
 
 from modules.pdf_converter import PDFConverter
@@ -14,21 +14,25 @@ class OutputService:
     def run(
         job,
         output,
-    ):
+    ) -> None:
 
         pdf = PDFConverter()
 
-        pdf.convert(
-            output.get_cv_docx_path(),
-            output.get_cv_pdf_path(),
-        )
+        try:
 
-        pdf.convert(
-            output.get_cl_docx_path(),
-            output.get_cl_pdf_path(),
-        )
+            pdf.convert(
+                output.get_cv_docx_path(),
+                output.get_cv_pdf_path(),
+            )
 
-        pdf.close()
+            pdf.convert(
+                output.get_cl_docx_path(),
+                output.get_cl_pdf_path(),
+            )
+
+        finally:
+
+            pdf.close()
 
         output.save_job_description(
             job.raw_html,
@@ -38,12 +42,4 @@ class OutputService:
             job.salary,
         )
 
-        output.save_report(
-            job,
-        )
-
-        if job.apply_url:
-
-            JobRepository().update_applied(
-                job.apply_url,
-            )
+        output.save_analysis()

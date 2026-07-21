@@ -1,7 +1,7 @@
 """
 analyze.py
 AIJobAssistant
-Version : v1.5.0
+Version : v2.0.0
 """
 
 from modules.analyze_service import AnalyzeService
@@ -9,7 +9,14 @@ from modules.analyze_service import AnalyzeService
 
 def main():
 
-    AnalyzeService().run()
+    report = AnalyzeService().run()
+
+    if report is None:
+        return
+
+    print()
+    print("Analysis completed.")
+    print(report)
 
 
 if __name__ == "__main__":

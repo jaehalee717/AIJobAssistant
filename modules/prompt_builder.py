@@ -213,9 +213,9 @@ JSON Format
         )
 
         return f"""
-You are a senior IT recruiter.
+You are a Senior IT Executive Recruiter, ATS Expert and Career Consultant.
 
-Perform a detailed analysis.
+Evaluate the following job against the candidate's actual experience, skills and career history.
 
 Company:
 {job.company}
@@ -233,19 +233,72 @@ Knowledge:
 
 {knowledge}
 
-Requirements
+Rules
 
-Evaluate:
+- Return EXACTLY the format below.
+- Keep EVERY item on ONE line.
+- Do NOT insert blank lines.
+- Do NOT use Markdown.
+- Do NOT use tables.
+- Do NOT invent experience.
+- Evaluate only from the Job Description and the provided Knowledge.
+- Recommendation must be APPLY, REVIEW or SKIP.
+- Priority must be High, Medium or Low.
+- Estimated ATS Match must be 0-100%.
+- Interview Probability must contain both rating and percentage.
+- Expected Salary must be Euro (€) Gross Annual Salary.
+- Expected Salary should reflect the country, city, job level and current market.
+- If information is unavailable, write Unknown.
+- Do not explain your methodology.
+- Return only the Output Format.
+- For Technical Fit through Reason:
+  - Write the evaluation in English after "평가:".
+  - Write the explanation in Korean after "설명:".
+  - The Korean explanation should be 2-4 sentences.
+  - Do not translate the English evaluation.
 
-- Technical Fit
-- Management Fit
-- Leadership Fit
-- Industry Fit
-- Missing Skills
-- Risks
-- Recommendation
-- Interview Probability
-- Estimated ATS Match
+Output Format
 
-Return in clear Markdown.
+● Recommendation:
+● Priority:
+● Estimated ATS Match:
+● Interview Probability:
+● Expected Salary:
+● Employment Type:
+● Work Model:
+● Language Fit:
+● Visa / Work Authorization:
+● Technical Fit:
+평가:
+설명:
+● Management Fit:
+평가:
+설명:
+● Leadership Fit:
+평가:
+설명:
+● Can Perform This Role:
+평가:
+설명:
+● Core Strengths:
+평가:
+설명:
+● Technical Gaps:
+평가:
+설명:
+● Risk:
+평가:
+설명:
+● CV Focus:
+평가:
+설명:
+● Cover Letter Focus:
+평가:
+설명:
+● Reason:
+평가:
+설명:
+● Overall Comments:
+평가:
+설명:
 """.strip()
