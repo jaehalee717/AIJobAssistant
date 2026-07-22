@@ -46,7 +46,7 @@ JOB_LABEL = "11구직진행중/구직분석"
 COMPLETED_LABEL = "11구직진행중/구직분석_완료"
 
 # 검색 메일 갯수
-MAX_MAILS = 5    #디버깅
+#MAX_MAILS = 5    #디버깅
 #MAX_MAILS = 100  #실서비스
 
 # Templates

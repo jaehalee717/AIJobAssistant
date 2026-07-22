@@ -1,137 +1,157 @@
 """
 modules/cv_generator.py
-AIJobAssistant
-Version : v2.0.0
-"""
 
-from __future__ import annotations
+AIJobAssistant
+Version : v6.0.0
+"""
 
 from pathlib import Path
 
-from docx import Document
-
-from modules.output_manager import OutputManager
+from modules.ai_generator import AIGenerator
+from modules.report.cv_quality_checker import CVQualityChecker
+from modules.report.cv_writer import CVWriter
+from modules.report.generation_service import GenerationService
+from modules.report.response_validator import ResponseValidator
+from modules.report.retry_prompt import RetryPrompt
 
 
 class CVGenerator:
-    """CV Generator"""
+
+    MAX_RETRIES = 3
 
     def __init__(
         self,
-        template_path: Path,
+        template,
+        prompt_builder,
+        ai_generator: AIGenerator,
     ):
 
-        self.template_path = Path(
-            template_path,
-        )
+        self.template = template
+        self.prompt_builder = prompt_builder
+        self.ai_generator = ai_generator
 
     def generate(
         self,
-        output: OutputManager,
-        profile: str,
-        competencies: str,
-        tai: str,
-        brazil: str,
-        spain: str,
-    ) -> Path:
-        """
-        Generate CV.
-
-        Returns
-            Saved docx path
-        """
-
-        document = Document(
-            self.template_path,
-        )
-
-        self._replace_after_heading(
-            document,
-            "PROFESSIONAL PROFILE",
-            profile,
-        )
-
-        self._replace_after_heading(
-            document,
-            "CORE COMPETENCIES",
-            competencies,
-        )
-
-        self._replace_after_text(
-            document,
-            "TAI Escuela Universitaria de Artes",
-            tai,
-        )
-
-        self._replace_after_text(
-            document,
-            "LG Electronics Brazil Ltd",
-            brazil,
-        )
-
-        self._replace_after_text(
-            document,
-            "LG Electronics Spain SA",
-            spain,
-        )
-
-        output_path = output.get_cv_docx_path()
-
-        output_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        document.save(
-            output_path,
-        )
-
-        return output_path
-
-    def _replace_after_heading(
-        self,
-        document: Document,
-        heading: str,
-        text: str,
+        job,
+        output_file,
     ) -> None:
 
-        paragraphs = document.paragraphs
+        prompt = self.prompt_builder.build_cv_prompt(
+            job,
+        )
 
-        for i, p in enumerate(
-            paragraphs,
+        self._save_prompt(
+            output_file,
+            prompt,
+        )
+
+        output_dir = Path(
+            output_file,
+        ).parent
+
+        last_error = None
+
+        for attempt in range(
+            1,
+            self.MAX_RETRIES + 1,
         ):
 
-            if p.text.strip().upper() != heading.upper():
-                continue
+            started = GenerationService.start()
 
-            if i + 1 >= len(paragraphs):
+            ai_text = self.ai_generator.generate_cv(
+                prompt,
+            )
+
+            self._save_response(
+                output_file,
+                ai_text,
+            )
+
+            try:
+
+                ResponseValidator.validate_cv(
+                    ai_text,
+                )
+
+                CVQualityChecker.validate(
+                    ai_text,
+                )
+
+                CVWriter.write(
+                    template=self.template,
+                    output=output_file,
+                    ai_text=ai_text,
+                )
+
+                GenerationService.finish(
+                    output_dir=output_dir,
+                    document_type="CV",
+                    attempt=attempt,
+                    prompt=prompt,
+                    response=ai_text,
+                    start_time=started,
+                    success=True,
+                )
+
                 return
 
-            paragraphs[i + 1].text = text
-            return
+            except Exception as e:
 
-    def _replace_after_text(
-        self,
-        document: Document,
-        keyword: str,
-        text: str,
-    ) -> None:
+                last_error = e
 
-        paragraphs = document.paragraphs
+                GenerationService.finish(
+                    output_dir=output_dir,
+                    document_type="CV",
+                    attempt=attempt,
+                    prompt=prompt,
+                    response=ai_text,
+                    start_time=started,
+                    success=False,
+                    error=str(
+                        e,
+                    ),
+                )
 
-        for i, p in enumerate(
-            paragraphs,
-        ):
+                prompt = RetryPrompt.build(
+                    prompt,
+                    e,
+                )
 
-            if keyword.lower() not in p.text.lower():
-                continue
+                self._save_prompt(
+                    output_file,
+                    prompt,
+                )
 
-            j = i + 1
+        raise last_error
 
-            while j < len(paragraphs):
+    @staticmethod
+    def _save_prompt(
+        output_file,
+        prompt,
+    ):
 
-                if paragraphs[j].text.strip().startswith("•"):
-                    paragraphs[j].text = text
-                    return
+        (
+            Path(
+                output_file,
+            ).parent
+            / "CV_Prompt.txt"
+        ).write_text(
+            prompt,
+            encoding="utf-8",
+        )
 
-                j += 1
+    @staticmethod
+    def _save_response(
+        output_file,
+        response,
+    ):
+
+        (
+            Path(
+                output_file,
+            ).parent
+            / "CV_Response.txt"
+        ).write_text(
+            response,
+            encoding="utf-8",
+        )

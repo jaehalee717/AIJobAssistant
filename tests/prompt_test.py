@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
 sys.path.insert(
     0,
     str(ROOT),
@@ -14,7 +15,7 @@ sys.path.insert(
 
 from models.job import Job
 from modules.knowledge_loader import KnowledgeLoader
-from modules.prompt_builder import PromptBuilder
+from modules.prompt.prompt_builder import PromptBuilder
 
 
 def main():

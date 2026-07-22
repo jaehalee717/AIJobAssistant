@@ -1,272 +1,148 @@
 """
 modules/output_manager.py
+
 AIJobAssistant
-Version : v2.0.0
+Version : v4.0.1
 """
 
-from __future__ import annotations
-
-import re
+import shutil
 from datetime import datetime
-from pathlib import Path
 
-from config import OUTPUT_DIR
-from models.job import Job
+from config import (
+    CL_TEMPLATE,
+    CV_TEMPLATE,
+    OUTPUT_DIR,
+)
 
 
 class OutputManager:
 
-    def __init__(
-        self,
-        job: Job,
+    INVALID_CHARS = '\\/:*?"<>|'
+
+    @classmethod
+    def create(
+        cls,
+        job,
     ):
 
-        self.job = job
+        today = datetime.now()
 
-        today = datetime.now().strftime("%Y-%m-%d")
-        date = datetime.now().strftime("%Y%m%d")
-
-        company = self._sanitize(job.company)
-        position = self._sanitize(job.position)
-        country = self._sanitize(job.country)
-
-        self.folder_name = (
-            f"{company}_{position}_{country}_{date}"
+        date_dir = (
+            OUTPUT_DIR /
+            today.strftime(
+                "%Y-%m-%d",
+            )
         )
 
-        self.output_dir = (
-            OUTPUT_DIR
-            / today
-            / self.folder_name
+        folder_name = cls._sanitize(
+            "_".join(
+                [
+                    job.company.strip(),
+                    job.position.strip(),
+                    job.location.strip(),
+                    today.strftime(
+                        "%Y%m%d",
+                    ),
+                ]
+            )
         )
 
-        self.output_dir.mkdir(
+        output_dir = (
+            date_dir /
+            folder_name
+        )
+
+        output_dir.mkdir(
             parents=True,
             exist_ok=True,
         )
 
-    @staticmethod
-    def _sanitize(
-        text: str,
-    ) -> str:
-
-        if not text:
-            return "Unknown"
-
-        text = re.sub(
-            r'[\\/:*?"<>|]',
-            "",
-            text,
+        cv_file = (
+            output_dir /
+            "Jaeha_Lee_CV.docx"
         )
 
-        text = re.sub(
-            r"\s+",
-            "_",
-            text.strip(),
+        cl_file = (
+            output_dir /
+            "Jaeha_Lee_CL.docx"
         )
 
-        return text
-
-    # ------------------------------------------------------------------
-    # Directory
-    # ------------------------------------------------------------------
-
-    def get_output_dir(
-        self,
-    ) -> Path:
-
-        return self.output_dir
-
-    def get_folder_name(
-        self,
-    ) -> str:
-
-        return self.folder_name
-
-    # ------------------------------------------------------------------
-    # Paths
-    # ------------------------------------------------------------------
-
-    def get_jd_html_path(
-        self,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / f"{self.folder_name}.html"
+        shutil.copy2(
+            CV_TEMPLATE,
+            cv_file,
         )
 
-    def get_analysis_path(
-        self,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / "Analysis.md"
+        shutil.copy2(
+            CL_TEMPLATE,
+            cl_file,
         )
 
-    def get_salary_path(
-        self,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / "Salary.txt"
+        cls._save_original_html(
+            job,
+            output_dir,
+            today,
         )
 
-    def get_cv_docx_path(
-        self,
-    ) -> Path:
+        return {
+            "output_dir": output_dir,
+            "cv_file": cv_file,
+            "cl_file": cl_file,
+        }
 
-        return (
-            self.output_dir
-            / "Jaeha_Lee_CV.docx"
+    @classmethod
+    def _save_original_html(
+        cls,
+        job,
+        output_dir,
+        today,
+    ):
+
+        html = (
+            getattr(
+                job,
+                "raw_html",
+                "",
+            )
+            or getattr(
+                job,
+                "html",
+                "",
+            )
         )
-
-    def get_cv_pdf_path(
-        self,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / "Jaeha_Lee_CV.pdf"
-        )
-
-    def get_cl_docx_path(
-        self,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / "Jaeha_Lee_CL.docx"
-        )
-
-    def get_cl_pdf_path(
-        self,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / "Jaeha_Lee_CL.pdf"
-        )
-
-    # ------------------------------------------------------------------
-    # Save
-    # ------------------------------------------------------------------
-
-    def save_job_description(
-        self,
-        html: str,
-    ) -> None:
 
         if not html:
-            raise ValueError(
-                "HTML is empty."
-            )
+            return
 
-        self.get_jd_html_path().write_text(
+        filename = cls._sanitize(
+            "_".join(
+                [
+                    job.company.strip(),
+                    job.position.strip(),
+                    job.location.strip(),
+                    today.strftime(
+                        "%Y%m%d",
+                    ),
+                ]
+            )
+        ) + ".html"
+
+        (
+            output_dir / filename
+        ).write_text(
             html,
             encoding="utf-8",
         )
 
-    def save_salary(
-        self,
-        salary: str,
-    ) -> None:
+    @classmethod
+    def _sanitize(
+        cls,
+        text: str,
+    ) -> str:
 
-        self.get_salary_path().write_text(
-            salary or "",
-            encoding="utf-8",
-        )
+        for c in cls.INVALID_CHARS:
+            text = text.replace(
+                c,
+                "_",
+            )
 
-    def save_analysis(
-        self,
-    ) -> None:
-
-        job = self.job
-
-        analysis = f"""...
-
-## Company
-{job.company}
-
-## Position
-{job.position}
-
-## Location
-{job.location}
-
-## Salary
-{job.salary}
-
-## Match
-{job.match}
-
-## Confidence
-{job.confidence}
-
-## Strength
-{job.strength}
-
-## Weakness
-{job.weak}
-
-## Reason
-{job.reason}
-
-## Recommendation
-{job.recommendation}
-
-## Next Action
-{job.next_action}
-
-## Apply URL
-{job.apply_url}
-"""
-
-        self.get_analysis_path().write_text(
-            analysis,
-            encoding="utf-8",
-        )
-
-    # ------------------------------------------------------------------
-    # Generic
-    # ------------------------------------------------------------------
-
-    def write_text(
-        self,
-        filename: str,
-        content: str,
-    ) -> Path:
-
-        path = (
-            self.output_dir
-            / filename
-        )
-
-        path.write_text(
-            content,
-            encoding="utf-8",
-        )
-
-        return path
-
-    def exists(
-        self,
-        filename: str,
-    ) -> bool:
-
-        return (
-            self.output_dir
-            / filename
-        ).exists()
-
-    def path(
-        self,
-        filename: str,
-    ) -> Path:
-
-        return (
-            self.output_dir
-            / filename
-        )
+        return text

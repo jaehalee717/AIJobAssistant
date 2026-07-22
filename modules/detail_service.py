@@ -1,7 +1,8 @@
 """
 modules/detail_service.py
+
 AIJobAssistant
-Version : v2.0.0
+Version : v3.0.0
 """
 
 from config import PROJECT_ROOT
@@ -9,7 +10,7 @@ from config import PROJECT_ROOT
 from modules.ai_generator import AIGenerator
 from modules.detail_parser import DetailParser
 from modules.knowledge_loader import KnowledgeLoader
-from modules.prompt_builder import PromptBuilder
+from modules.prompt.prompt_builder import PromptBuilder
 from modules.repository.job_repository import JobRepository
 from modules.workflow.detail_workflow import DetailWorkflow
 

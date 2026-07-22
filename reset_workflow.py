@@ -1,7 +1,8 @@
 """
-reset_detail.py
+reset_workflow.py
+
 AIJobAssistant
-Version : v1.1.0
+Version : v2.0.0
 """
 
 import sqlite3
@@ -20,10 +21,12 @@ def main():
     cursor.execute(
         """
         UPDATE jobs
-        SET status = 'READY_TO_DETAIL'
+        SET status = 'READY_TO_DETAIL',
+            applied = 0
         WHERE status IN (
             'DETAIL_COMPLETED',
-            'READY_TO_APPLY'
+            'READY_TO_APPLY',
+            'APPLIED'
         )
         """
     )
@@ -40,4 +43,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()

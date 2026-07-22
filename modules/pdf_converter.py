@@ -1,10 +1,9 @@
 """
 modules/pdf_converter.py
-AIJobAssistant
-Version : v1.5.0
-"""
 
-from __future__ import annotations
+AIJobAssistant
+Version : v2.0.0
+"""
 
 from pathlib import Path
 
@@ -12,50 +11,51 @@ import win32com.client
 
 
 class PDFConverter:
-    """Word DOCX -> PDF Converter"""
 
-    def __init__(self):
+    def __init__(
+        self,
+    ):
 
-        self.word = win32com.client.Dispatch("Word.Application")
+        self.word = win32com.client.Dispatch(
+            "Word.Application",
+        )
+
         self.word.Visible = False
 
     def convert(
         self,
-        docx_path: Path,
-        pdf_path: Path,
+        docx_file,
     ) -> Path:
-        """
-        Convert DOCX to PDF.
 
-        Args:
-            docx_path: Source DOCX
-            pdf_path: Target PDF
-
-        Returns:
-            PDF path
-        """
-
-        docx_path = Path(docx_path)
-        pdf_path = Path(pdf_path)
-
-        pdf_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
+        docx_file = Path(
+            docx_file,
         )
 
-        document = self.word.Documents.Open(str(docx_path))
+        pdf_file = docx_file.with_suffix(
+            ".pdf",
+        )
+
+        document = self.word.Documents.Open(
+            str(docx_file),
+        )
 
         document.SaveAs(
-            str(pdf_path),
-            FileFormat=17,      # wdFormatPDF
+            str(pdf_file),
+            FileFormat=17,
         )
 
-        document.Close(False)
+        document.Close(
+            False,
+        )
 
-        return pdf_path
+        return pdf_file
 
-    def close(self) -> None:
-        """Close Word"""
+    def close(
+        self,
+    ) -> None:
 
         if self.word:
+
             self.word.Quit()
+
+            self.word = None

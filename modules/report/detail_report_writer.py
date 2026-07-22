@@ -2,11 +2,12 @@
 modules/report/detail_report_writer.py
 
 AIJobAssistant
-Version : v2.2.0
+Version : v4.0.0
 """
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 from docx import Document
@@ -16,7 +17,7 @@ from .summary_writer import SummaryWriter
 
 
 class DetailReportWriter:
-    """Detail Analysis Report 생성."""
+    """Detail Analysis Report 생성"""
 
     @staticmethod
     def write(
@@ -27,8 +28,12 @@ class DetailReportWriter:
         document = Document()
 
         document.add_heading(
-            "Detail AIJobAssistant Report",
+            "AIJobAssistant Detail Report",
             level=0,
+        )
+
+        document.add_paragraph(
+            f"Generated Time : {datetime.now():%Y-%m-%d %H:%M:%S}"
         )
 
         SummaryWriter.write(

@@ -2,7 +2,7 @@
 modules/analysis/service.py
 
 AIJobAssistant
-Version : v2.0.0
+Version : v3.0.0
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from models.job import Job
 
 from modules.ai_generator import AIGenerator
 from modules.analysis.result import AnalysisResultParser
-from modules.prompt_builder import PromptBuilder
+from modules.prompt.prompt_builder import PromptBuilder
 from modules.repository.job_repository import JobRepository
 
 
@@ -24,6 +24,7 @@ class AnalysisService:
         ai_generator: AIGenerator,
         repository: JobRepository,
     ):
+
         self.prompt_builder = prompt_builder
         self.ai_generator = ai_generator
         self.repository = repository
@@ -33,9 +34,6 @@ class AnalysisService:
         job: Job,
         ai_result: str,
     ) -> Job:
-        """
-        Parse ChatGPT result and update DB.
-        """
 
         job = AnalysisResultParser.parse(
             ai_result,

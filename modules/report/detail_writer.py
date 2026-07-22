@@ -2,16 +2,16 @@
 modules/report/detail_writer.py
 
 AIJobAssistant
-Version : v2.2.0
+Version : v4.0.0
 """
+
+from datetime import datetime
 
 from docx import Document
 
-from .table_builder import TableBuilder
-
 
 class DetailWriter:
-    """Detail Analysis Report 작성."""
+    """Detail Analysis Report 작성"""
 
     @staticmethod
     def write(
@@ -33,51 +33,74 @@ class DetailWriter:
             )
 
             document.add_heading(
-                f"Job No: {job.id} | {job.company} | {job.position} | {job.location}",
+                f"{job.company} | {job.position}",
                 level=2,
+            )
+
+            document.add_paragraph(
+                f"Company : {job.company}"
+            )
+
+            document.add_paragraph(
+                f"Position : {job.position}"
+            )
+
+            document.add_paragraph(
+                f"Location : {job.location}"
+            )
+
+            document.add_paragraph(
+                f"Apply URL : {job.apply_url}"
+            )
+
+            document.add_paragraph(
+                f"Generated Time : {datetime.now():%Y-%m-%d %H:%M:%S}"
             )
 
             if detail is None:
 
                 document.add_paragraph(
-                    "● Detail Analysis: N/A",
+                    "Detail Analysis : N/A",
                 )
+
+                document.add_page_break()
 
                 continue
 
-            document.add_paragraph( f"● Recommendation: {detail.recommendation}")
-            document.add_paragraph( f"● Priority: {detail.priority}")
-            document.add_paragraph( f"● Estimated ATS Match: {detail.ats_match}")
-            document.add_paragraph( f"● Interview Probability: {detail.interview_probability}")
-            document.add_paragraph( f"● Expected Salary: {detail.expected_salary}")
-            document.add_paragraph( f"● Employment Type: {detail.employment_type}")
-            document.add_paragraph( f"● Work Model: {detail.work_model}")
-            document.add_paragraph( f"● Language Fit: {detail.language_fit}")
-            document.add_paragraph( f"● Visa / Work Authorization: {detail.visa}")
-            document.add_paragraph("● Technical Fit")
-            document.add_paragraph(detail.technical_fit)
-            document.add_paragraph("● Management Fit")
-            document.add_paragraph(detail.management_fit)
-            document.add_paragraph("● Leadership Fit")
-            document.add_paragraph(detail.leadership_fit)
-            document.add_paragraph("● Can Perform This Role")
-            document.add_paragraph(detail.can_perform)
-            document.add_paragraph("● Core Strengths")
-            document.add_paragraph(detail.core_strengths)
-            document.add_paragraph("● Technical Gaps")
-            document.add_paragraph(detail.technical_gaps)
-            document.add_paragraph("● Risk")
-            document.add_paragraph(detail.risk)
-            document.add_paragraph("● CV Focus")
-            document.add_paragraph(detail.cv_focus)
-            document.add_paragraph("● Cover Letter Focus")
-            document.add_paragraph(detail.cover_letter_focus)
-            document.add_paragraph("● Reason")
-            document.add_paragraph(detail.reason)
+            fields = [
+                ("Recommendation", detail.recommendation),
+                ("Priority", detail.priority),
+                ("ATS Match", detail.ats_match),
+                ("Interview Probability", detail.interview_probability),
+                ("Expected Salary", detail.expected_salary),
+                ("Employment Type", detail.employment_type),
+                ("Work Model", detail.work_model),
+                ("Language Fit", detail.language_fit),
+                ("Visa / Work Authorization", detail.visa),
+                ("Technical Fit", detail.technical_fit),
+                ("Management Fit", detail.management_fit),
+                ("Leadership Fit", detail.leadership_fit),
+                ("Can Perform", detail.can_perform),
+                ("Core Strengths", detail.core_strengths),
+                ("Technical Gaps", detail.technical_gaps),
+                ("Risk", detail.risk),
+                ("CV Focus", detail.cv_focus),
+                ("Cover Letter Focus", detail.cover_letter_focus),
+                ("Reason", detail.reason),
+                (
+                    "Overall Comments",
+                    getattr(
+                        detail,
+                        "overall_comments",
+                        "",
+                    ),
+                ),
+            ]
 
-            if hasattr(
-                detail,
-                "overall_comments",
-            ):
-                document.add_paragraph("● Overall Comments")
-                document.add_paragraph(detail.overall_comments)
+            for title, value in fields:
+
+                document.add_paragraph(
+                    f"{title} : {value}"
+                )
+
+            document.add_page_break()

@@ -1,10 +1,19 @@
 """
 application_workflow.py
 AIJobAssistant
-Version : v2.0.0
+Version : v2.1.0
 """
+
 import traceback
 
+from constants.decision import (
+    APPLY,
+    REVIEW,
+)
+from constants.status import (
+    READY_TO_DETAIL,
+    SKIPPED,
+)
 from modules.documents.report_generator import ReportGenerator
 from modules.repository.job_repository import JobRepository
 from modules.workflow.job_processor import JobProcessor
@@ -70,19 +79,20 @@ class ApplicationWorkflow:
                 )
 
                 if job.decision in (
-                    "APPLY",
-                    "REVIEW",
+                    APPLY,
+                    REVIEW,
                 ):
 
-                    self.repository.mark_ready_to_detail(
-                        job.id,
+                    self.repository.update_status(
+                        job.apply_url,
+                        READY_TO_DETAIL,
                     )
 
                 else:
 
                     self.repository.update_status(
                         job.apply_url,
-                        "SKIPPED",
+                        SKIPPED,
                     )
 
                 self.processed += 1

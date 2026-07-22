@@ -1,130 +1,143 @@
 """
 modules/ai_generator.py
+
 AIJobAssistant
-Version : v1.5.0
+Version : v4.5.0
 """
 
-from __future__ import annotations
+from pathlib import Path
 
-import win32clipboard
-import win32con
+from modules.console import console
+from modules.apply.clipboard_service import ClipboardService
+
 
 class AIGenerator:
-    """AI Prompt Generator (No API)"""
 
-    @staticmethod
-    def copy_to_clipboard(text: str) -> None:
+    def __init__(
+        self,
+    ):
 
-        print(f"Clipboard text length: {len(text)}")
+        self.clipboard = ClipboardService()
 
-        win32clipboard.OpenClipboard()
+    def generate_cv(
+        self,
+        prompt,
+    ) -> str:
 
-        try:
-            win32clipboard.EmptyClipboard()
-            win32clipboard.SetClipboardData(
-                win32con.CF_UNICODETEXT,
-                text,
-            )
-        finally:
-            win32clipboard.CloseClipboard()
+        return self._generate(
+            "cv",
+            prompt,
+        )
 
-        print("Clipboard updated.")
+    def generate_cl(
+        self,
+        prompt,
+    ) -> str:
 
-    def generate_cv(self, prompt: str) -> str:
-        """
-        Copy CV prompt to clipboard.
-        """
+        return self._generate(
+            "cover_letter",
+            prompt,
+        )
 
-        self.copy_to_clipboard(prompt)
-
-        print()
-        print("=" * 80)
-        print("CV Prompt copied to Clipboard.")
-        print("Open ChatGPT and press Ctrl + V.")
-        print("=" * 80)
-        print()
-
-        return prompt
-
-    def generate_cl(self, prompt: str) -> str:
-        """
-        Copy Cover Letter prompt to clipboard.
-        """
-
-        self.copy_to_clipboard(prompt)
-
-        print()
-        print("=" * 80)
-        print("Cover Letter Prompt copied to Clipboard.")
-        print("Open ChatGPT and press Ctrl + V.")
-        print("=" * 80)
-        print()
-
-        return prompt
-    
     def generate_analysis(
         self,
-        prompt: str,
+        prompt,
     ) -> str:
-        """
-        Copy Analysis prompt to clipboard.
-        """
 
-        self.copy_to_clipboard(prompt)
-
-        print()
-        print("=" * 80)
-        print("Analysis Prompt copied to Clipboard.")
-        print("Open ChatGPT and press Ctrl + V.")
-        print("=" * 80)
-        print()
-
-        return prompt
-
+        return self._generate(
+            "analysis",
+            prompt,
+        )
 
     def generate_detail_analysis(
         self,
-        prompt: str,
+        prompt,
     ) -> str:
-        """
-        Copy Detail Analysis prompt to clipboard.
-        """
 
-        self.copy_to_clipboard(prompt)
+        return self._generate(
+            "detail_analysis",
+            prompt,
+        )
 
-        print()
-        print("=" * 80)
-        print("Detail Analysis Prompt copied to Clipboard.")
-        print("Open ChatGPT and press Ctrl + V.")
-        print("=" * 80)
-        print()
+    def _generate(
+        self,
+        name,
+        prompt,
+    ) -> str:
 
-        return prompt
-    
-    def read_response(self) -> str:
-        """
-        Read pasted AI response from console.
-        Finish with Ctrl+Z then Enter (Windows).
-        """
+        debug_dir = Path(
+            "debug",
+        )
 
-        print("Paste AI response.")
-        print("Press Ctrl+Z then Enter when finished.")
-        print()
+        debug_dir.mkdir(
+            exist_ok=True,
+        )
 
-        lines = []
+        previous_text = self.clipboard.paste()
 
-        while True:
-            try:
-                line = input()
-            except EOFError:
-                break
+        self.clipboard.copy(
+            prompt,
+        )
 
-            lines.append(line)
+        clipboard_text = self.clipboard.paste()
 
-        response = "\n".join(lines).strip()
+        (
+            debug_dir
+            / f"last_{name}_prompt.txt"
+        ).write_text(
+            clipboard_text,
+            encoding="utf-8",
+        )
 
-        print()
-        print(f"Response length: {len(response)} characters")
-        print()
+        console.info(
+            f"{name.upper()} prompt copied to clipboard."
+        )
 
-        return response
+        console.info(
+            f"Prompt Size : {len(prompt):,} characters"
+        )
+
+        console.info(
+            f"Clipboard Size : {len(clipboard_text):,} characters"
+        )
+
+        if clipboard_text != prompt:
+
+            console.error(
+                "Clipboard content differs from original prompt."
+            )
+
+        input(
+            "\n"
+            "1. Paste the prompt into ChatGPT.\n"
+            "2. Copy the entire response.\n"
+            "3. Press ENTER..."
+        )
+
+        response = self.clipboard.wait_changed(
+            previous_text,
+        )
+
+        (
+            debug_dir
+            / f"last_{name}_response.txt"
+        ).write_text(
+            response,
+            encoding="utf-8",
+        )
+
+        console.info(
+            f"{name.upper()} response received."
+        )
+
+        console.info(
+            f"Response Size : {len(response):,} characters"
+        )
+
+        return response.strip()
+
+    def read_response(
+        self,
+    ) -> str:
+
+        return self.clipboard.paste()

@@ -27,9 +27,9 @@ AUTO_SELECT_FIRST_JOB = True
 # ==========================================================
 
 MOVE_COMPLETED_LABEL = False
-MAX_MAILS = 5
+MAX_MAILS = 1
 
-STOP_AFTER_FIRST_JOB = False
+STOP_AFTER_FIRST_JOB = True
 
 # ==========================================================
 # Report

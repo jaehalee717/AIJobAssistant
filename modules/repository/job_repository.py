@@ -443,3 +443,32 @@ class JobRepository:
             )
 
             conn.commit()
+
+    def update_detail_result(
+        self,
+        job: Job,
+    ) -> None:
+
+        with sqlite3.connect(self.db) as conn:
+
+            conn.execute(
+                """
+                UPDATE jobs
+                SET
+                    ai_score=?,
+                    ai_decision=?,
+                    salary=?,
+                    reason=?,
+                    status='READY_TO_APPLY'
+                WHERE id=?
+                """,
+                (
+                    job.match,
+                    job.decision,
+                    job.salary,
+                    job.reason,
+                    job.id,
+                ),
+            )
+
+            conn.commit()

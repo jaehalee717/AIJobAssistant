@@ -1,0 +1,23 @@
+"""
+constants/status.py
+
+AIJobAssistant
+"""
+
+#
+# Database Status
+#
+
+NEW = "NEW"
+
+READY_TO_ANALYZE = "READY_TO_ANALYZE"
+
+READY_TO_DETAIL = "READY_TO_DETAIL"
+
+READY_TO_APPLY = "READY_TO_APPLY"
+
+APPLIED = "APPLIED"
+
+SKIPPED = "SKIPPED"
+
+FAILED = "FAILED"

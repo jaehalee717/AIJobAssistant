@@ -1,82 +1,157 @@
 """
 modules/cl_generator.py
-AIJobAssistant
-Version : v2.0.0
-"""
 
-from __future__ import annotations
+AIJobAssistant
+Version : v6.0.0
+"""
 
 from pathlib import Path
 
-from docx import Document
-
-from modules.output_manager import OutputManager
+from modules.ai_generator import AIGenerator
+from modules.report.cl_quality_checker import CLQualityChecker
+from modules.report.cl_writer import CLWriter
+from modules.report.generation_service import GenerationService
+from modules.report.response_validator import ResponseValidator
+from modules.report.retry_prompt import RetryPrompt
 
 
 class CLGenerator:
-    """Cover Letter Generator"""
+
+    MAX_RETRIES = 3
 
     def __init__(
         self,
-        template_path: Path,
+        template,
+        prompt_builder,
+        ai_generator: AIGenerator,
     ):
 
-        self.template_path = Path(
-            template_path,
-        )
+        self.template = template
+        self.prompt_builder = prompt_builder
+        self.ai_generator = ai_generator
 
     def generate(
         self,
-        output: OutputManager,
-        letter: str,
-    ) -> Path:
-        """
-        Generate Cover Letter.
-
-        Returns
-            Saved docx path
-        """
-
-        document = Document(
-            self.template_path,
-        )
-
-        self._replace_content(
-            document,
-            letter,
-        )
-
-        output_path = output.get_cl_docx_path()
-
-        output_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        document.save(
-            output_path,
-        )
-
-        return output_path
-
-    def _replace_content(
-        self,
-        document: Document,
-        text: str,
+        job,
+        output_file,
     ) -> None:
 
-        paragraphs = document.paragraphs
+        prompt = self.prompt_builder.build_cl_prompt(
+            job,
+        )
 
-        if not paragraphs:
+        self._save_prompt(
+            output_file,
+            prompt,
+        )
 
-            document.add_paragraph(
-                text,
+        output_dir = Path(
+            output_file,
+        ).parent
+
+        last_error = None
+
+        for attempt in range(
+            1,
+            self.MAX_RETRIES + 1,
+        ):
+
+            started = GenerationService.start()
+
+            ai_text = self.ai_generator.generate_cl(
+                prompt,
             )
 
-            return
+            self._save_response(
+                output_file,
+                ai_text,
+            )
 
-        paragraphs[0].text = text
+            try:
 
-        for paragraph in paragraphs[1:]:
+                ResponseValidator.validate_cl(
+                    ai_text,
+                )
 
-            paragraph.text = ""
+                CLQualityChecker.validate(
+                    ai_text,
+                )
+
+                CLWriter.write(
+                    template=self.template,
+                    output=output_file,
+                    ai_text=ai_text,
+                )
+
+                GenerationService.finish(
+                    output_dir=output_dir,
+                    document_type="CL",
+                    attempt=attempt,
+                    prompt=prompt,
+                    response=ai_text,
+                    start_time=started,
+                    success=True,
+                )
+
+                return
+
+            except Exception as e:
+
+                last_error = e
+
+                GenerationService.finish(
+                    output_dir=output_dir,
+                    document_type="CL",
+                    attempt=attempt,
+                    prompt=prompt,
+                    response=ai_text,
+                    start_time=started,
+                    success=False,
+                    error=str(
+                        e,
+                    ),
+                )
+
+                prompt = RetryPrompt.build(
+                    prompt,
+                    e,
+                )
+
+                self._save_prompt(
+                    output_file,
+                    prompt,
+                )
+
+        raise last_error
+
+    @staticmethod
+    def _save_prompt(
+        output_file,
+        prompt,
+    ):
+
+        (
+            Path(
+                output_file,
+            ).parent
+            / "CL_Prompt.txt"
+        ).write_text(
+            prompt,
+            encoding="utf-8",
+        )
+
+    @staticmethod
+    def _save_response(
+        output_file,
+        response,
+    ):
+
+        (
+            Path(
+                output_file,
+            ).parent
+            / "CL_Response.txt"
+        ).write_text(
+            response,
+            encoding="utf-8",
+        )

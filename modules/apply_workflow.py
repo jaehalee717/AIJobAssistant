@@ -1,11 +1,11 @@
 """
-modules/apply_workflow.py
+modules/workflow/apply_workflow.py
+
 AIJobAssistant
-Version : v2.1.0
+Version : v3.1.0
 """
 
 from modules.console import console
-from modules.output_manager import OutputManager
 
 
 class ApplyWorkflow:
@@ -13,14 +13,16 @@ class ApplyWorkflow:
     def __init__(
         self,
         repository,
-        cv_service,
-        cl_service,
+        cv_generator,
+        cl_generator,
+        pdf_converter,
         output_service,
     ):
 
         self.repository = repository
-        self.cv_service = cv_service
-        self.cl_service = cl_service
+        self.cv_generator = cv_generator
+        self.cl_generator = cl_generator
+        self.pdf_converter = pdf_converter
         self.output_service = output_service
 
     def run(
@@ -45,7 +47,7 @@ class ApplyWorkflow:
             step="3/3",
             title="Apply",
             current=1,
-            total=3,
+            total=len(jobs),
         )
 
         for job in jobs:
@@ -90,23 +92,34 @@ class ApplyWorkflow:
                 job,
             )
 
-            output = OutputManager(
+            files = self.output_service.create(
                 job,
             )
 
-            self.cv_service.run(
+            self.cv_generator.run(
                 job,
-                output,
+                self.output_service.cv(
+                    files,
+                ),
             )
 
-            self.cl_service.run(
+            self.cl_generator.run(
                 job,
-                output,
+                self.output_service.cl(
+                    files,
+                ),
             )
 
-            self.output_service.run(
-                job,
-                output,
+            self.pdf_converter.convert(
+                self.output_service.cv(
+                    files,
+                ),
+            )
+
+            self.pdf_converter.convert(
+                self.output_service.cl(
+                    files,
+                ),
             )
 
             self.repository.update_applied(

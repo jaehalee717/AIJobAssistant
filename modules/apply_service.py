@@ -1,7 +1,8 @@
 """
 modules/apply_service.py
+
 AIJobAssistant
-Version : v2.1.0
+Version : v5.0.0
 """
 
 from config import (
@@ -11,15 +12,13 @@ from config import (
 )
 
 from modules.ai_generator import AIGenerator
-from modules.apply.cl_service import CLService
-from modules.apply.cv_service import CVService
-from modules.apply.output_service import OutputService
-from modules.apply_workflow import ApplyWorkflow
 from modules.cl_generator import CLGenerator
 from modules.cv_generator import CVGenerator
 from modules.knowledge_loader import KnowledgeLoader
-from modules.prompt_builder import PromptBuilder
+from modules.pdf_converter import PDFConverter
+from modules.prompt.prompt_builder import PromptBuilder
 from modules.repository.job_repository import JobRepository
+from modules.workflow.apply_workflow import ApplyWorkflow
 
 
 class ApplyService:
@@ -28,41 +27,39 @@ class ApplyService:
         self,
     ):
 
-        knowledge = KnowledgeLoader(
+        knowledge_loader = KnowledgeLoader(
             PROJECT_ROOT / "knowledge",
         )
 
-        knowledge.load()
+        knowledge_loader.load()
 
         prompt_builder = PromptBuilder(
-            knowledge,
+            knowledge_loader,
         )
 
-        ai = AIGenerator()
+        ai_generator = AIGenerator()
 
         repository = JobRepository()
 
-        cv_service = CVService(
-            ai=ai,
+        cv_generator = CVGenerator(
+            template=CV_TEMPLATE,
             prompt_builder=prompt_builder,
-            cv_generator=CVGenerator(
-                CV_TEMPLATE,
-            ),
+            ai_generator=ai_generator,
         )
 
-        cl_service = CLService(
-            ai=ai,
+        cl_generator = CLGenerator(
+            template=CL_TEMPLATE,
             prompt_builder=prompt_builder,
-            cl_generator=CLGenerator(
-                CL_TEMPLATE,
-            ),
+            ai_generator=ai_generator,
         )
+
+        pdf_converter = PDFConverter()
 
         self.workflow = ApplyWorkflow(
             repository=repository,
-            cv_service=cv_service,
-            cl_service=cl_service,
-            output_service=OutputService,
+            cv_generator=cv_generator,
+            cl_generator=cl_generator,
+            pdf_converter=pdf_converter,
         )
 
     def run(

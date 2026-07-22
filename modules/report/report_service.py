@@ -2,7 +2,7 @@
 modules/report/report_service.py
 
 AIJobAssistant
-Version : v2.0.0
+Version : v4.0.0
 """
 
 from __future__ import annotations
@@ -15,14 +15,19 @@ from .report_writer import ReportWriter
 class ReportService:
     """Analysis Report Service"""
 
-    @staticmethod
+    DEFAULT_FILENAME = "Analysis_Report.docx"
+
+    @classmethod
     def create(
+        cls,
         jobs,
         output_dir: Path,
-        filename: str = "Analysis_Report.docx",
+        filename: str | None = None,
     ) -> Path:
 
-        output_file = output_dir / filename
+        output_file = output_dir / (
+            filename or cls.DEFAULT_FILENAME
+        )
 
         return ReportWriter.write(
             jobs=jobs,

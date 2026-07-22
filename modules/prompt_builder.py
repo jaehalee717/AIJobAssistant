@@ -1,154 +1,198 @@
 """
 modules/prompt_builder.py
+
 AIJobAssistant
-Version : v1.5.0
+Version : v3.0.0
 """
 
-from __future__ import annotations
-
-from models.job import Job
-from modules.knowledge_loader import KnowledgeLoader
-
-
 class PromptBuilder:
-    """Prompt Builder"""
 
     def __init__(
         self,
-        knowledge: KnowledgeLoader,
+        knowledge,
     ):
 
         self.knowledge = knowledge
 
     def build_cv_prompt(
         self,
-        job: Job,
+        job,
     ) -> str:
-        """
-        Build CV prompt.
-        """
 
-        knowledge = self.knowledge.get_many(
-            [
-                "career_library",
-                "cv_rules",
-                "positioning_rules",
-                "quality_checklist",
-            ]
-        )
+        return f"""
+    You are an expert Executive Resume Writer specializing in ATS-optimized executive resumes.
+    Generate a customized executive CV that maximizes ATS compatibility while remaining completely truthful.
 
-        prompt = f"""
-You are an expert ATS resume writer.
+    ==================================================
+    ABSOLUTE RULES
+    ==================================================
+    - Use ONLY verified information contained in Source of Truth and Career Library.
+    - Source of Truth has the highest priority.
+    - Career Library contains additional verified candidate information.
+    - Never invent responsibilities, achievements, technologies, certifications, education, dates or business results.
+    - Never invent or infer experience that is not explicitly supported by the Source of Truth or Career Library.
+    - Tailor the wording, emphasis and ordering of verified experience to maximize relevance to the Job Description.
+    - If a Job Description requirement is not supported by verified experience, do NOT mention it. Instead, emphasize the closest verified experience.
+    - Preserve factual accuracy at all times.
+    - Prioritize the strongest matching experience.
+    - Use ATS keywords naturally.
+    - Do NOT stuff keywords.
+    - Always output every placeholder.
+    - Output ONLY the placeholders below.
+    - Do NOT use Markdown.
+    - Do NOT explain your reasoning.
+    - Do NOT output any text before or after the placeholders.
 
-Create a professional CV for the following job.
+    ==================================================
+    SOURCE OF TRUTH
+    ==================================================
+    {self.knowledge.get("source_of_truth")}
 
-Company:
-{job.company}
+    ==================================================
+    CAREER LIBRARY
+    ==================================================
+    {self.knowledge.get("career_profile")}
 
-Position:
-{job.position}
+    ==================================================
+    CAREER EVIDENCE
+    ==================================================
+    {self.knowledge.get("career_evidence")}
 
-Location:
-{job.location}
+    ==================================================
+    ATS KEYWORDS
+    ==================================================
+    {self.knowledge.get("ats_keywords")}
 
-Job Description:
-{job.description}
+    ==================================================
+    POSITIONING RULES
+    ==================================================
+    {self.knowledge.get("positioning_rules")}
 
-Knowledge:
+    ==================================================
+    CV WRITING RULES
+    ==================================================
+    {self.knowledge.get("cv_rules")}
 
-{knowledge}
+    ==================================================
+    JOB DESCRIPTION
+    ==================================================
+    {self._job_description(job)}
 
-Requirements
+    ==================================================
+    FINAL INSTRUCTION
+    ==================================================
 
-- Follow all CV rules.
-- ATS optimized.
-- Truthful only.
-- Never invent experience.
-- Use concise business English.
-- Maximum 2 pages.
-- Return only the CV content.
-"""
+    This instruction overrides every previous instruction.
+    Return ONLY the placeholders and their content.
+    Your FIRST line MUST be:
 
-        prompt = prompt.strip()
+    {{TITLE}}
 
-        print("=" * 80)
-        print(f"CV Prompt Size : {len(prompt):,} chars")
-        print("=" * 80)
+    Keep every placeholder exactly as written.
+    Do NOT remove or rename any placeholder.
+    Do NOT output any text before {{TITLE}}.
 
-        return prompt
+    ==================================================
+    OUTPUT FORMAT
+    ==================================================
+    {self._output_format("CV")}
+    """.strip()
 
     def build_cl_prompt(
         self,
-        job: Job,
+        job,
     ) -> str:
-        """
-        Build Cover Letter prompt.
-        """
 
-        knowledge = self.knowledge.get_many(
-            [
-                "career_library",
-                "cover_letter_rules",
-                "positioning_rules",
-                "quality_checklist",
-            ]
-        )
+        return f"""
+    You are an expert Executive Cover Letter Writer.
+    Generate a customized executive cover letter that maximizes ATS compatibility while remaining completely truthful.
 
-        prompt = f"""
-You are an expert cover letter writer.
+    ==================================================
+    ABSOLUTE RULES
+    ==================================================
+    - Use ONLY verified information contained in Source of Truth and Career Library.
+    - Source of Truth has the highest priority.
+    - Career Library contains additional verified candidate information.
+    - Never invent responsibilities, achievements, technologies, certifications, education, dates or business results.
+    - Never infer experience that is not explicitly supported.
+    - Tailor wording and emphasis to the Job Description.
+    - Preserve factual accuracy.
+    - Keep a professional executive tone.
+    - Output ONLY the placeholders below.
+    - Always output every placeholder.
+    - Do NOT use Markdown.
+    - Do NOT explain your reasoning.
+    - Do NOT output any text before or after the placeholders.
 
-Create a professional cover letter.
+    ==================================================
+    SOURCE OF TRUTH
+    ==================================================
+    {self.knowledge.get("source_of_truth")}
 
-Company:
-{job.company}
+    ==================================================
+    CAREER LIBRARY
+    ==================================================
+    {self.knowledge.get("career_profile")}
 
-Position:
-{job.position}
+    ==================================================
+    CAREER EVIDENCE
+    ==================================================
+    {self.knowledge.get("career_evidence")}
 
-Location:
-{job.location}
+    ==================================================
+    ATS KEYWORDS
+    ==================================================
+    {self.knowledge.get("ats_keywords")}
 
-Job Description:
-{job.description}
+    ==================================================
+    POSITIONING RULES
+    ==================================================
+    {self.knowledge.get("positioning_rules")}
 
-Knowledge:
+    ==================================================
+    COVER LETTER WRITING RULES
+    ==================================================
+    {self.knowledge.get("cover_letter_rules")}
 
-{knowledge}
+    ==================================================
+    JOB DESCRIPTION
+    ==================================================
+    {self._job_description(job)}
 
-Requirements
+    ==================================================
+    FINAL INSTRUCTION
+    ==================================================
 
-- Business English.
-- Professional.
-- Natural.
-- ATS optimized.
-- Never invent experience.
-- About one page.
-- Return only the cover letter.
-"""
+    This instruction overrides every previous instruction.
 
-        prompt = prompt.strip()
+    Return ONLY the placeholders and their content.
 
-        print("=" * 80)
-        print(f"CL Prompt Size : {len(prompt):,} chars")
-        print("=" * 80)
+    Your FIRST line MUST be:
 
-        return prompt
-    
+    {{GREETING}}
+
+    Keep every placeholder exactly as written.
+
+    Do NOT remove or rename any placeholder.
+
+    Do NOT output any text before {{GREETING}}.
+
+    ==================================================
+    OUTPUT FORMAT
+    ==================================================
+    {self._output_format("CL")}
+    """.strip()
+
     def build_analysis_prompt(
         self,
-        job: Job,
+        job,
     ) -> str:
-        """
-        Build first analysis prompt.
-        """
 
         knowledge = self.knowledge.get_many(
-            [
-                "career_library",
-                "apply_skip_rules",
-                "positioning_rules",
-                "quality_checklist",
-            ]
+            "career_profile",
+            "career_evidence",
+            "analysis_rules",
+            "apply_skip_rules",
         )
 
         return f"""
@@ -194,22 +238,16 @@ JSON Format
 }}
 """.strip()
 
-
     def build_detail_analysis_prompt(
         self,
-        job: Job,
+        job,
     ) -> str:
-        """
-        Build detailed analysis prompt.
-        """
 
         knowledge = self.knowledge.get_many(
-            [
-                "career_library",
-                "apply_skip_rules",
-                "positioning_rules",
-                "quality_checklist",
-            ]
+            "career_profile",
+            "career_evidence",
+            "analysis_rules",
+            "apply_skip_rules",
         )
 
         return f"""
@@ -302,3 +340,118 @@ Output Format
 평가:
 설명:
 """.strip()
+
+    @staticmethod
+    def _job_description(
+        job,
+    ) -> str:
+
+        return f"""
+Company
+{job.company}
+
+Position
+{job.position}
+
+Location
+{job.location}
+
+Job Description
+{job.description}
+"""
+
+    @staticmethod
+    def _output_format(
+        document_type,
+    ) -> str:
+
+        if document_type == "CV":
+
+            return """
+Return EXACTLY in the following format.
+
+Output EVERY placeholder exactly once.
+
+Do NOT change any placeholder name.
+
+Do NOT remove the curly braces.
+
+Output the placeholder first, followed by its content.
+
+{{TITLE}}
+
+...
+
+{{PROFESSIONAL_PROFILE}}
+
+...
+
+{{CORE_COMPETENCIES}}
+
+...
+
+{{TAI_EXPERIENCE}}
+
+...
+
+{{BRAZIL_TITLE}}
+
+...
+
+{{BRAZIL_EXPERIENCE}}
+
+...
+
+{{SPAIN_EXPERIENCE}}
+
+...
+
+{{BANKEPOST_EXPERIENCE}}
+
+...
+
+{{LGI_EXPERIENCE}}
+
+...
+
+{{LGE_EXPERIENCE}}
+
+...
+
+Rules
+
+- Every placeholder must appear exactly once.
+- Keep every placeholder exactly as written.
+- Output ONLY the placeholders and their content.
+- Do NOT use Markdown.
+- Do NOT add explanations.
+- Do NOT output any text before the first placeholder.
+- Do NOT output any text after the last placeholder.
+"""
+        return """
+Return EXACTLY in the following format.
+
+Output EVERY placeholder exactly once.
+
+Do NOT change any placeholder name.
+
+Do NOT remove the curly braces.
+
+{{GREETING}}
+
+...
+
+{{BODY}}
+
+...
+
+Rules
+
+- Every placeholder must appear exactly once.
+- Keep every placeholder exactly as written.
+- Output ONLY the placeholders and their content.
+- Do NOT use Markdown.
+- Do NOT add explanations.
+- Do NOT output any text before the first placeholder.
+- Do NOT output any text after the last placeholder.
+"""

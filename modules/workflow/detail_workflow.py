@@ -1,7 +1,7 @@
 """
 modules/workflow/detail_workflow.py
 AIJobAssistant
-Version : v2.2.1
+Version : v2.2.2
 """
 
 from datetime import datetime
@@ -63,40 +63,16 @@ class DetailWorkflow:
 
         print()
         print("=" * 80)
-        print("DEBUG-1")
-        print("=" * 80)
 
-        try:
+        import sys
 
-            import sys
+        sys.stdout.write(
+            "Job No : "
+        )
 
-            sys.stdout.write(
-                "Job No : "
-            )
+        sys.stdout.flush()
 
-            sys.stdout.flush()
-
-            job_no = sys.stdin.readline().strip()
-
-            print(
-                f"DEBUG-2 : {job_no}"
-            )
-
-            print(
-                f"DEBUG-2 : {job_no}"
-            )
-
-        except Exception:
-
-            import traceback
-
-            traceback.print_exc()
-
-            input(
-                "Press ENTER..."
-            )
-
-            return
+        job_no = sys.stdin.readline().strip()
 
         job_ids = [
             int(x.strip())
@@ -144,12 +120,19 @@ class DetailWorkflow:
 
             response = self.ai_generator.read_response()
 
-            job.detail_result = self.parser.parse(
+            detail = self.parser.parse(
                 response,
             )
 
-            self.repository.mark_detail_completed(
-                job.id,
+            job.detail_result = detail
+
+            job.decision = detail.recommendation
+            job.match = detail.ats_match
+            job.salary = detail.expected_salary
+            job.reason = detail.reason
+
+            self.repository.update_detail_result(
+                job,
             )
 
         report_file = (

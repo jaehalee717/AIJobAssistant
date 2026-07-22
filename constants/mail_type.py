@@ -1,0 +1,27 @@
+"""
+constants/mail_type.py
+
+AIJobAssistant
+"""
+
+#
+# Mail Type
+#
+
+JOB = "JOB"
+
+JOB_ALERT = "JOB_ALERT"
+
+RECRUITER = "RECRUITER"
+
+APPLICATION = "APPLICATION"
+
+INTERVIEW = "INTERVIEW"
+
+REJECTION = "REJECTION"
+
+NEWSLETTER = "NEWSLETTER"
+
+SPAM = "SPAM"
+
+UNKNOWN = "UNKNOWN"

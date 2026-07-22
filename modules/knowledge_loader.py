@@ -1,10 +1,9 @@
 """
 modules/knowledge_loader.py
-AIJobAssistant
-Version : v1.5.0
-"""
 
-from __future__ import annotations
+AIJobAssistant
+Version : v5.0.0
+"""
 
 from pathlib import Path
 
@@ -12,72 +11,54 @@ from docx import Document
 
 
 class KnowledgeLoader:
-    """Knowledge Loader"""
 
-    def __init__(self, knowledge_dir: Path):
+    KNOWLEDGE_ORDER = [
+        "source_of_truth",
+        "career_profile",
+        "career_evidence",
+        "ats_keywords",
+        "interview_library",
+        "positioning_rules",
+        "cv_rules",
+        "cover_letter_rules",
+        "apply_skip_rules",
+        "quality_checklist",
+        "analysis_rules",
+    ]
 
-        self.knowledge_dir = Path(knowledge_dir)
-        self.knowledge = {}
-
-    def load(self) -> dict[str, str]:
-        """
-        Load all knowledge files into memory.
-        """
-
-        self.knowledge.clear()
-
-        for file in sorted(self.knowledge_dir.glob("*.docx")):
-
-            self.knowledge[file.stem] = self._read_docx(file)
-
-        return self.knowledge
-
-    def get(
+    def __init__(
         self,
-        name: str,
-    ) -> str:
+        knowledge_dir: Path,
+    ):
 
-        return self.knowledge.get(name, "")
+        self.knowledge_dir = knowledge_dir
+        self.documents = {}
 
-    def get_many(
+    def load(
         self,
-        names: list[str],
-    ) -> str:
-        """
-        Load only selected knowledge documents.
-        """
+    ) -> None:
 
-        texts = []
+        self.documents.clear()
 
-        for name in names:
+        for name in self.KNOWLEDGE_ORDER:
 
-            text = self.get(name)
+            file = self.knowledge_dir / f"{name}.docx"
 
-            if not text:
+            if not file.exists():
                 continue
 
-            texts.append(f"===== {name} =====")
-            texts.append(text)
-            texts.append("")
-
-        return "\n".join(texts)
-
-    def get_all(self) -> str:
-
-        texts = []
-
-        for name, text in self.knowledge.items():
-
-            texts.append(f"===== {name} =====")
-            texts.append(text)
-            texts.append("")
-
-        return "\n".join(texts)
+            self.documents[name] = self._read_docx(
+                file,
+            )
 
     @staticmethod
-    def _read_docx(path: Path) -> str:
+    def _read_docx(
+        file: Path,
+    ) -> str:
 
-        document = Document(path)
+        document = Document(
+            file,
+        )
 
         lines = []
 
@@ -86,6 +67,38 @@ class KnowledgeLoader:
             text = paragraph.text.strip()
 
             if text:
-                lines.append(text)
 
-        return "\n".join(lines)
+                lines.append(
+                    text,
+                )
+
+        return "\n".join(
+            lines,
+        )
+
+    def get(
+        self,
+        name: str,
+    ) -> str:
+
+        return self.documents.get(
+            name,
+            "",
+        )
+
+    def get_many(
+        self,
+        *names: str,
+    ) -> str:
+
+        return "\n\n".join(
+            self.documents.get(
+                name,
+                "",
+            )
+            for name in names
+            if self.documents.get(
+                name,
+                "",
+            )
+        )

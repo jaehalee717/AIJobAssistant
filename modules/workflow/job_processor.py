@@ -1,9 +1,13 @@
 """
-job_processor.py
+modules/workflow/job_processor.py
+
 AIJobAssistant
-Version : v2.0.0
+Version : v2.1.0
 """
 
+from constants.status import (
+    SKIPPED,
+)
 from models.job import Job
 
 from modules.jd_parser import JDParser
@@ -28,7 +32,11 @@ class JobProcessor:
         )
 
         if job is None:
-            return None, "SKIPPED"
+
+            return (
+                None,
+                SKIPPED,
+            )
 
         return (
             job,

@@ -2,7 +2,7 @@
 modules/report/analysis_writer.py
 
 AIJobAssistant
-Version : v2.1.0
+Version : v4.0.0
 """
 
 from __future__ import annotations
@@ -15,14 +15,55 @@ class AnalysisWriter:
     @staticmethod
     def write(
         document: Document,
-        job,
+        jobs,
     ) -> None:
 
         document.add_heading(
             "Analysis",
-            level=3,
+            level=1,
         )
 
-        document.add_paragraph(
-            f"Reason : {job.reason}"
-        )
+        for job in jobs:
+
+            document.add_heading(
+                f"{job.company} - {job.position}",
+                level=2,
+            )
+
+            document.add_paragraph(
+                f"Company : {job.company}"
+            )
+
+            document.add_paragraph(
+                f"Position : {job.position}"
+            )
+
+            document.add_paragraph(
+                f"Location : {job.location}"
+            )
+
+            document.add_paragraph(
+                f"Salary : {getattr(job, 'salary', 'Unknown')}"
+            )
+
+            document.add_paragraph(
+                f"Match Score : {getattr(job, 'match', 'Unknown')}"
+            )
+
+            document.add_paragraph(
+                f"Recommendation : {getattr(job, 'decision', 'Unknown')}"
+            )
+
+            document.add_paragraph(
+                f"Reason : {getattr(job, 'reason', '')}"
+            )
+
+            document.add_paragraph(
+                f"Apply URL : {getattr(job, 'apply_url', '')}"
+            )
+
+            document.add_paragraph(
+                f"Generated Time : {getattr(job, 'created_at', '')}"
+            )
+
+            document.add_page_break()

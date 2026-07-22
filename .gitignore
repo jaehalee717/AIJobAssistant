@@ -20,6 +20,21 @@ temp/
 # Logs
 *.log
 
+# Output
+output/
+
+# Debug
+debug/
+
+# Word temporary files
+~$*.docx
+
+# Zip
+*.zip
+
+# PDF
+*.pdf
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,16 +1,18 @@
 """
 Gmail Reader
 AIJobAssistant
-Version : v1.0.1
+Version : v1.0.2
 """
 
 import base64
 
 from config import JOB_LABEL
-from models.job import Job
-from modules.gmail_service import get_gmail_service
 from config import MAX_MAILS
 from email.header import decode_header, make_header
+
+from models.job import Job
+from modules.gmail_service import get_gmail_service
+
 
 def decode_body(data: str, charset: str | None = "utf-8") -> str:
 
@@ -33,6 +35,7 @@ def decode_body(data: str, charset: str | None = "utf-8") -> str:
 
     return raw.decode("utf-8", errors="replace")
 
+
 def decode_subject(subject: str) -> str:
 
     if not subject:
@@ -43,6 +46,7 @@ def decode_subject(subject: str) -> str:
         return str(make_header(decoded))
     except Exception:
         return subject
+
 
 def get_message_body(message_id: str) -> str:
 
@@ -76,9 +80,7 @@ def get_message_body(message_id: str) -> str:
                 data = part.get("body", {}).get("data")
 
                 if data:
-
                     body = decode_body(data)
-
                     return True
 
             if mime == "text/html":
@@ -86,7 +88,6 @@ def get_message_body(message_id: str) -> str:
                 data = part.get("body", {}).get("data")
 
                 if data:
-
                     body = decode_body(data)
 
             if "parts" in part:
@@ -97,18 +98,15 @@ def get_message_body(message_id: str) -> str:
         return False
 
     if "parts" in payload:
-
         extract(payload["parts"])
-
     else:
-
         data = payload.get("body", {}).get("data")
 
         if data:
-
             body = decode_body(data)
 
     return body
+
 
 def get_message_html(message_id: str) -> str:
 
@@ -160,6 +158,7 @@ def get_message_html(message_id: str) -> str:
         return decode_body(data)
 
     return ""
+
 
 def get_label_id(service, label_name):
 
@@ -239,11 +238,12 @@ def read_job_messages():
 
         job.message_id = item["id"]
         job.thread_id = message.get("threadId", "")
-        job.subject = decode_subject(
-            values.get("Subject", "")
-        )
+        job.subject = decode_subject(values.get("Subject", ""))
         job.sender = values.get("From", "")
         job.date = values.get("Date", "")
+
+        job.body = get_message_body(job.message_id)
+        job.raw_html = get_message_html(job.message_id)
 
         jobs.append(job)
 

@@ -1,13 +1,13 @@
 """
-Clipboard Service
+modules/apply/clipboard_service.py
+
 AIJobAssistant
-Version : v1.5.3
+Version : v4.0.0
 """
 
 import time
 
 import win32clipboard
-import win32con
 
 
 class ClipboardService:
@@ -24,7 +24,7 @@ class ClipboardService:
             win32clipboard.EmptyClipboard()
 
             win32clipboard.SetClipboardData(
-                win32con.CF_UNICODETEXT,
+                win32clipboard.CF_UNICODETEXT,
                 text,
             )
 
@@ -33,23 +33,24 @@ class ClipboardService:
             win32clipboard.CloseClipboard()
 
     @staticmethod
-    def read() -> str:
+    def paste(
+    ) -> str:
+
+        win32clipboard.OpenClipboard()
 
         try:
 
-            win32clipboard.OpenClipboard()
+            if win32clipboard.IsClipboardFormatAvailable(
+                win32clipboard.CF_UNICODETEXT,
+            ):
 
-            try:
-
-                text = win32clipboard.GetClipboardData(
-                    win32con.CF_UNICODETEXT,
+                return (
+                    win32clipboard.GetClipboardData()
+                    .replace("\r\n", "\n")
+                    .strip()
                 )
 
-            except TypeError:
-
-                text = ""
-
-            return text.strip()
+            return ""
 
         finally:
 
@@ -57,29 +58,32 @@ class ClipboardService:
 
     def wait_changed(
         self,
-        expected: str,
+        previous_text: str,
+        timeout: int = 1800,
     ) -> str:
 
-        print()
-        print("Waiting for ChatGPT response...")
+        previous_text = (
+            previous_text
+            .replace("\r\n", "\n")
+            .strip()
+        )
+
+        start = time.time()
 
         while True:
 
-            try:
+            text = self.paste()
 
-                current = self.read()
+            if text and text != previous_text:
 
-            except Exception:
+                return text
 
-                current = ""
+            if time.time() - start > timeout:
 
-            if (
-                current
-                and current != expected
-            ):
+                raise TimeoutError(
+                    "Clipboard timeout."
+                )
 
-                print("Clipboard changed.")
-
-                return current
-
-            time.sleep(1)
+            time.sleep(
+                1,
+            )

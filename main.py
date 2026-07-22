@@ -10,7 +10,6 @@ from modules.gmail_auth import authenticate
 from modules.workflow.mail_workflow import MailWorkflow
 from modules.workflow.application_workflow import ApplicationWorkflow
 
-
 def main():
 
     initialize_database()
