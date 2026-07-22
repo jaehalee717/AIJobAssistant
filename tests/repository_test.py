@@ -14,6 +14,7 @@ sys.path.insert(
 )
 
 from config import DB_FILE
+from constants import status
 from models.job import Job
 from modules.repository.job_repository import JobRepository
 
@@ -65,7 +66,9 @@ def main():
         job,
     )
 
-    loaded = repo.get_ready_to_apply_job()
+    loaded = repo.get_job_by_id(
+        job.id,
+    )
 
     assert loaded is not None
     assert loaded.company == job.company
