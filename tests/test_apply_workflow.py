@@ -4,8 +4,17 @@ tests/test_apply_workflow.py
 
 from unittest.mock import Mock
 
-from modules.apply_workflow import ApplyWorkflow
+import sys
+from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(
+    0,
+    str(ROOT),
+)
+
+from modules.apply_workflow import ApplyWorkflow
 
 class DummyJob:
     id = 1

@@ -3,6 +3,15 @@ tests/test_cv_generator.py
 AIJobAssistant
 Version : v2.0.0
 """
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(
+    0,
+    str(ROOT),
+)
 
 from config import CV_TEMPLATE
 from models.job import Job

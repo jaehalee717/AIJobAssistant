@@ -4,10 +4,19 @@ AIJobAssistant
 Version : v2.0.0
 """
 
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(
+    0,
+    str(ROOT),
+)
+
 from models.job import Job
 from modules.apply.cv_service import CVService
 from modules.output_manager import OutputManager
-
 
 class DummyAI:
 
