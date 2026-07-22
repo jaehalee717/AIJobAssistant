@@ -1,465 +1,234 @@
 """
-job_repository.py
+modules/repository/job_repository.py
+
 AIJobAssistant
-Version : v1.5.0
+Version : v2.0.0
 """
 
 import sqlite3
 
 from config import DB_FILE
+from constants import status
+from constants import decision
 from models.job import Job
 
 
 class JobRepository:
 
     def __init__(self):
-
         self.db = DB_FILE
 
+    def _connect(self):
+        return sqlite3.connect(self.db)
 
-    def exists(
-        self,
-        apply_url: str,
-    ) -> bool:
-
-        if not apply_url:
-            return False
-
-        with sqlite3.connect(self.db) as conn:
-
-            cur = conn.cursor()
-
-            cur.execute(
-                "SELECT 1 FROM jobs WHERE url=?",
-                (apply_url,),
-            )
-
-            return cur.fetchone() is not None
-
-
-    def insert(
-        self,
-        job: Job,
-    ):
-
-        with sqlite3.connect(self.db) as conn:
-
-            cursor = conn.execute(
-                """
-                INSERT OR IGNORE INTO jobs
-                (
-                    company,
-                    position,
-
-                    location,
-                    description,
-
-                    raw_html,
-
-                    country,
-                    city,
-
-                    url,
-
-                    ai_score,
-                    ai_decision,
-
-                    status,
-
-                    salary,
-
-                    date
-                )
-                VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    job.company,
-                    job.position,
-
-                    job.location,
-                    job.description,
-
-                    job.raw_html,
-
-                    job.country,
-                    job.city,
-
-                    job.apply_url,
-
-                    job.match,
-                    job.decision,
-
-                    "NEW",
-
-                    job.salary,
-
-                    job.date,
-                ),
-            )
-
-            job.id = cursor.lastrowid
-
-            conn.commit()
-
-
-    def update(
-        self,
-        job: Job,
-    ):
-
-        status_map = {
-            "APPLY": "READY_TO_DETAIL",
-            "REVIEW": "READY_TO_DETAIL",
-            "SKIP": "SKIPPED",
-            "REJECT": "REJECTED",
-        }
-
-        status = status_map.get(
-            job.decision,
-            "READY_TO_DETAIL",
-        )
-
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.execute(
-                """
-                UPDATE jobs
-                SET
-                    ai_score=?,
-                    ai_decision=?,
-                    reason=?,
-                    status=?
-                WHERE url=?
-                """,
-                (
-                    job.match,
-                    job.decision,
-                    job.reason,
-                    status,
-                    job.apply_url,
-                ),
-            )
-
-            conn.commit()
-
-
-    def get_ready_to_apply_job(
-        self,
-    ) -> Job | None:
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.row_factory = sqlite3.Row
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                SELECT *
-                FROM jobs
-                WHERE status='READY_TO_APPLY'
-                ORDER BY id
-                LIMIT 1
-                """
-            )
-
-            row = cur.fetchone()
-
-
-            if row is None:
-
-                return None
-
-            job = Job()
-            job.id = row["id"]
-            job.company = row["company"]
-            job.position = row["position"]
-            job.location = row["location"]
-            job.description = row["description"]
-            job.raw_html = row["raw_html"]
-            job.country = row["country"]
-            job.city = row["city"]
-            job.salary = row["salary"]
-            job.apply_url = row["url"]
-            job.reason = row["reason"]
-            job.match = row["ai_score"]
-            job.decision = row["ai_decision"]
-
-            return job
-
-    def update_applied(
-        self,
-        apply_url: str,
-    ):
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.execute(
-                """
-                UPDATE jobs
-                SET
-                    status='APPLIED',
-                    applied=1
-                WHERE url=?
-                """,
-                (apply_url,),
-            )
-
-            conn.commit()
-
-
-    def update_status(
-        self,
-        apply_url: str,
-        status: str,
-    ):
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.execute(
-                """
-                UPDATE jobs
-                SET status=?
-                WHERE url=?
-                """,
-                (
-                    status,
-                    apply_url,
-                ),
-            )
-
-            conn.commit()
-
-    def get_new_jobs(
-        self,
-    ) -> list[Job]:
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.row_factory = sqlite3.Row
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                SELECT *
-                FROM jobs
-                WHERE status='NEW'
-                ORDER BY id
-                """
-            )
-
-            rows = cur.fetchall()
-
-        jobs = []
-
-        for row in rows:
-
-            job = Job()
-
-            job.id = row["id"]
-
-            job.company = row["company"]
-            job.position = row["position"]
-
-            job.location = row["location"]
-            job.description = row["description"]
-
-            job.raw_html = row["raw_html"]
-
-            job.country = row["country"]
-            job.city = row["city"]
-
-            job.salary = row["salary"]
-
-            job.apply_url = row["url"]
-
-            job.match = row["ai_score"]
-            job.decision = row["ai_decision"]
-
-            job.reason = row["reason"]
-
-            jobs.append(job)
-
-        return jobs
-
-
-    def get_jobs_by_status(
-        self,
-        status: str,
-    ) -> list[Job]:
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.row_factory = sqlite3.Row
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                SELECT *
-                FROM jobs
-                WHERE status=?
-                ORDER BY id
-                """,
-                (status,),
-            )
-
-            rows = cur.fetchall()
-
-        jobs = []
-
-        for row in rows:
-
-            job = Job()
-            job.id = row["id"]
-            job.company = row["company"]
-            job.position = row["position"]
-            job.location = row["location"]
-            job.description = row["description"]
-            job.raw_html = row["raw_html"]
-            job.country = row["country"]
-            job.city = row["city"]
-            job.salary = row["salary"]
-            job.apply_url = row["url"]
-            job.match = row["ai_score"]
-            job.decision = row["ai_decision"]
-            job.reason = row["reason"]
-            jobs.append(job)
-
-        return jobs
-
-
-    def get_job_by_id(
-        self,
-        job_id: int,
-    ) -> Job | None:
-
-        with sqlite3.connect(self.db) as conn:
-
-            conn.row_factory = sqlite3.Row
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                SELECT *
-                FROM jobs
-                WHERE id=?
-                """,
-                (job_id,),
-            )
-
-            row = cur.fetchone()
-
+    def _row_to_job(self, row):
         if row is None:
             return None
 
         job = Job()
 
         job.id = row["id"]
-
-        job.raw_html = row["raw_html"]
-
-        job.country = row["country"]
-        job.city = row["city"]
-
-        job.salary = row["salary"]
-
         job.company = row["company"]
         job.position = row["position"]
-
         job.location = row["location"]
-
         job.description = row["description"]
-
+        job.raw_html = row["raw_html"]
+        job.country = row["country"]
+        job.city = row["city"]
+        job.salary = row["salary"]
         job.apply_url = row["url"]
-
         job.match = row["ai_score"]
         job.decision = row["ai_decision"]
-
         job.reason = row["reason"]
 
         return job
 
-    def get_jobs_by_ids(
-        self,
-        job_ids: list[int],
-    ) -> list[Job]:
+    def exists(self, apply_url):
+        if not apply_url:
+            return False
 
-        if not job_ids:
-            return []
-
-        jobs = []
-
-        for job_id in job_ids:
-
-            job = self.get_job_by_id(
-                job_id,
+        with self._connect() as conn:
+            cur = conn.execute(
+                "SELECT 1 FROM jobs WHERE url=?",
+                (apply_url,),
             )
+            return cur.fetchone() is not None
 
-            if job is not None:
-                jobs.append(
-                    job,
+    def insert(self, job):
+        with self._connect() as conn:
+            cursor = conn.execute(
+                """
+                INSERT OR IGNORE INTO jobs
+                (
+                    company, position, location, description,
+                    raw_html, country, city, url,
+                    ai_score, ai_decision, status,
+                    salary, date
                 )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    job.company,
+                    job.position,
+                    job.location,
+                    job.description,
+                    job.raw_html,
+                    job.country,
+                    job.city,
+                    job.apply_url,
+                    job.match,
+                    job.decision,
+                    status.NEW,
+                    job.salary,
+                    job.date,
+                ),
+            )
 
-        return jobs
-    
-    def mark_ready_to_detail(
-        self,
-        job_id: int,
-    ) -> None:
+            job.id = cursor.lastrowid
+            conn.commit()
 
-        with sqlite3.connect(self.db) as conn:
+    def update(self, job):
 
+        status_map = {
+            decision.APPLY: status.READY_TO_DETAIL,
+            decision.REVIEW: status.READY_TO_DETAIL,
+            decision.SKIP: status.SKIPPED,
+            decision.REJECT: status.REJECTED,
+        }
+
+        with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE jobs
-                SET status='READY_TO_DETAIL'
-                WHERE id=?
+                SET ai_score=?, ai_decision=?, reason=?, status=?
+                WHERE url=?
                 """,
-                (job_id,),
+                (
+                    job.match,
+                    job.decision,
+                    job.reason,
+                    status_map.get(
+                        job.decision,
+                        status.READY_TO_DETAIL,
+                    ),
+                    job.apply_url,
+                ),
             )
 
             conn.commit()
 
+    def get_job_by_id(self, job_id):
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                "SELECT * FROM jobs WHERE id=?",
+                (job_id,),
+            ).fetchone()
 
-    def mark_detail_completed(
-        self,
-        job_id: int,
-    ) -> None:
+        return self._row_to_job(row)
 
-        with sqlite3.connect(self.db) as conn:
+    def get_ready_to_apply_job(self):
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                """
+                SELECT *
+                FROM jobs
+                WHERE status=?
+                ORDER BY id
+                LIMIT 1
+                """,
+                (status.READY_TO_APPLY,),
+            ).fetchone()
 
+        return self._row_to_job(row)
+
+    def get_new_jobs(self):
+        return self.get_jobs_by_status(status.NEW)
+
+    def get_jobs_by_status(self, value):
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT *
+                FROM jobs
+                WHERE status=?
+                ORDER BY id
+                """,
+                (value,),
+            ).fetchall()
+
+        return [
+            self._row_to_job(row)
+            for row in rows
+        ]
+
+    def get_jobs_by_ids(self, job_ids):
+        return [
+            job
+            for job in (
+                self.get_job_by_id(job_id)
+                for job_id in job_ids
+            )
+            if job is not None
+        ]
+
+    def update_status(self, apply_url, value):
+        with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE jobs
-                SET status='DETAIL_COMPLETED'
-                WHERE id=?
+                SET status=?
+                WHERE url=?
                 """,
-                (job_id,),
+                (value, apply_url),
             )
-
             conn.commit()
 
-    def update_detail_result(
-        self,
-        job: Job,
-    ) -> None:
-
-        with sqlite3.connect(self.db) as conn:
-
+    def update_applied(self, apply_url):
+        with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE jobs
-                SET
-                    ai_score=?,
-                    ai_decision=?,
-                    salary=?,
-                    reason=?,
-                    status='READY_TO_APPLY'
+                SET status=?, applied=1
+                WHERE url=?
+                """,
+                (status.APPLIED, apply_url),
+            )
+            conn.commit()
+
+    def mark_ready_to_detail(self, job_id):
+        self._update_status_by_id(
+            job_id,
+            status.READY_TO_DETAIL,
+        )
+
+    def mark_detail_completed(self, job_id):
+        self._update_status_by_id(
+            job_id,
+            status.DETAIL_COMPLETED,
+        )
+
+    def _update_status_by_id(self, job_id, value):
+        with self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE jobs
+                SET status=?
+                WHERE id=?
+                """,
+                (value, job_id),
+            )
+            conn.commit()
+
+    def update_detail_result(self, job):
+        with self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE jobs
+                SET ai_score=?, ai_decision=?, salary=?,
+                    reason=?, status=?
                 WHERE id=?
                 """,
                 (
@@ -467,8 +236,8 @@ class JobRepository:
                     job.decision,
                     job.salary,
                     job.reason,
+                    status.READY_TO_APPLY,
                     job.id,
                 ),
             )
-
             conn.commit()
