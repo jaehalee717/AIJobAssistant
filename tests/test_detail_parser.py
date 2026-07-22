@@ -2,6 +2,16 @@
 tests/test_detail_parser.py
 """
 
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(
+    0,
+    str(ROOT),
+)
+
 from modules.detail_parser import DetailParser
 
 
