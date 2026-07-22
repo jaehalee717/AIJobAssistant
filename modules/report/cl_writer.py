@@ -2,7 +2,7 @@
 modules/report/cl_writer.py
 
 AIJobAssistant
-Version : v8.0.0
+Version : v8.1.0
 """
 
 from docx import Document
@@ -19,7 +19,7 @@ class CLWriter:
         template,
         output,
         ai_text,
-    ) -> None:
+    ) -> Document:
 
         context = CLParser.parse(
             ai_text,
@@ -98,6 +98,8 @@ class CLWriter:
         document.save(
             output,
         )
+
+        return document
 
     @staticmethod
     def _add_paragraph(

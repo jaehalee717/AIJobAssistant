@@ -49,7 +49,7 @@ def main():
 
     print("TEST STEP 6")
 
-    ApplyService().run(job)
+    ApplyService().run()
 
     print("TEST STEP 7")
 

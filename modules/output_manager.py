@@ -1,23 +1,26 @@
 """
-modules/output_manager.py
+Output Manager
 
 AIJobAssistant
-Version : v4.0.1
+Version : v2.1.0
 """
 
-import shutil
 from datetime import datetime
+from pathlib import Path
 
-from config import (
-    CL_TEMPLATE,
-    CV_TEMPLATE,
-    OUTPUT_DIR,
-)
+from config import OUTPUT_DIR
 
 
 class OutputManager:
+    """
+    Create application output package folder.
+    """
 
-    INVALID_CHARS = '\\/:*?"<>|'
+    CV_FILENAME = "Jaeha_Lee_CV.docx"
+    CL_FILENAME = "Jaeha_Lee_CL.docx"
+
+    # Leave some margin below Windows MAX_PATH (260)
+    MAX_PATH_LENGTH = 240
 
     @classmethod
     def create(
@@ -25,31 +28,47 @@ class OutputManager:
         job,
     ):
 
-        today = datetime.now()
-
-        date_dir = (
-            OUTPUT_DIR /
-            today.strftime(
-                "%Y-%m-%d",
-            )
+        output_dir = cls._create_output_dir(
+            job,
         )
 
-        folder_name = cls._sanitize(
-            "_".join(
-                [
-                    job.company.strip(),
-                    job.position.strip(),
-                    job.location.strip(),
-                    today.strftime(
-                        "%Y%m%d",
-                    ),
-                ]
-            )
+        html_file = cls._save_original_html(
+            output_dir,
+            job,
+        )
+
+        cv_file = output_dir / cls.CV_FILENAME
+
+        cl_file = output_dir / cls.CL_FILENAME
+
+        return {
+            "output_dir": output_dir,
+            "html_file": html_file,
+            "cv_file": cv_file,
+            "cl_file": cl_file,
+        }
+
+    @classmethod
+    def _create_output_dir(
+        cls,
+        job,
+    ):
+
+        date_folder = datetime.now().strftime(
+            "%Y-%m-%d"
+        )
+
+        folder_name = (
+            f"{cls._clean_name(job.company)}_"
+            f"{cls._clean_name(job.position)}_"
+            f"{cls._clean_name(job.location)}_"
+            f"{datetime.now().strftime('%Y%m%d')}"
         )
 
         output_dir = (
-            date_dir /
-            folder_name
+            Path(OUTPUT_DIR)
+            / date_folder
+            / folder_name
         )
 
         output_dir.mkdir(
@@ -57,92 +76,91 @@ class OutputManager:
             exist_ok=True,
         )
 
-        cv_file = (
-            output_dir /
-            "Jaeha_Lee_CV.docx"
-        )
-
-        cl_file = (
-            output_dir /
-            "Jaeha_Lee_CL.docx"
-        )
-
-        shutil.copy2(
-            CV_TEMPLATE,
-            cv_file,
-        )
-
-        shutil.copy2(
-            CL_TEMPLATE,
-            cl_file,
-        )
-
-        cls._save_original_html(
-            job,
-            output_dir,
-            today,
-        )
-
-        return {
-            "output_dir": output_dir,
-            "cv_file": cv_file,
-            "cl_file": cl_file,
-        }
+        return output_dir
 
     @classmethod
     def _save_original_html(
         cls,
-        job,
         output_dir,
-        today,
+        job,
     ):
 
-        html = (
-            getattr(
-                job,
-                "raw_html",
-                "",
-            )
-            or getattr(
-                job,
-                "html",
-                "",
-            )
+        if not job.raw_html:
+            return None
+
+        company = cls._clean_name(
+            job.company,
         )
 
-        if not html:
-            return
+        position = cls._clean_name(
+            job.position,
+        )
 
-        filename = cls._sanitize(
-            "_".join(
-                [
-                    job.company.strip(),
-                    job.position.strip(),
-                    job.location.strip(),
-                    today.strftime(
-                        "%Y%m%d",
-                    ),
-                ]
-            )
-        ) + ".html"
+        location = cls._clean_name(
+            job.location,
+        )
 
-        (
-            output_dir / filename
-        ).write_text(
-            html,
+        prefix = (
+            f"{company}_{position}_"
+        )
+
+        suffix = ".html"
+
+        current_length = (
+            len(str(output_dir))
+            + 1              # path separator
+            + len(prefix)
+            + len(suffix)
+        )
+
+        remaining = max(
+            0,
+            cls.MAX_PATH_LENGTH - current_length,
+        )
+
+        location = location[:remaining]
+
+        html_name = (
+            f"{prefix}"
+            f"{location}"
+            f"{suffix}"
+        )
+
+        html_file = output_dir / html_name
+
+        html_file.write_text(
+            job.raw_html,
             encoding="utf-8",
         )
 
-    @classmethod
-    def _sanitize(
-        cls,
-        text: str,
-    ) -> str:
+        return html_file
 
-        for c in cls.INVALID_CHARS:
-            text = text.replace(
-                c,
+    @staticmethod
+    def _clean_name(
+        value,
+    ):
+
+        if not value:
+            return "Unknown"
+
+        invalid_chars = [
+            "<",
+            ">",
+            ":",
+            '"',
+            "/",
+            "\\",
+            "|",
+            "?",
+            "*",
+        ]
+
+        result = value
+
+        for char in invalid_chars:
+            result = result.replace(
+                char,
                 "_",
             )
 
-        return text
+        return result.strip()

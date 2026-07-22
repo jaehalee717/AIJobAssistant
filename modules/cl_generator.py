@@ -73,15 +73,18 @@ class CLGenerator:
                     ai_text,
                 )
 
-                CLQualityChecker.validate(
-                    ai_text,
-                )
-
-                CLWriter.write(
+                document = CLWriter.write(
                     template=self.template,
                     output=output_file,
                     ai_text=ai_text,
                 )
+
+                checker = CLQualityChecker()
+
+                if not checker.validate(document):
+                    raise ValueError(
+                        "Generated cover letter failed quality validation."
+                    )
 
                 GenerationService.finish(
                     output_dir=output_dir,

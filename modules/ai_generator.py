@@ -2,7 +2,7 @@
 modules/ai_generator.py
 
 AIJobAssistant
-Version : v4.5.0
+Version : v4.6.0
 """
 
 from pathlib import Path
@@ -59,6 +59,22 @@ class AIGenerator:
             prompt,
         )
 
+    @staticmethod
+    def _normalize(
+        text,
+    ) -> str:
+
+        return (
+            text
+            .replace(
+                "\r\n",
+                "\n",
+            )
+            .rstrip(
+                "\n",
+            )
+        )
+
     def _generate(
         self,
         name,
@@ -101,10 +117,31 @@ class AIGenerator:
             f"Clipboard Size : {len(clipboard_text):,} characters"
         )
 
-        if clipboard_text != prompt:
+        if (
+            self._normalize(
+                clipboard_text,
+            )
+            !=
+            self._normalize(
+                prompt,
+            )
+        ):
 
             console.error(
                 "Clipboard content differs from original prompt."
+            )
+
+            console.info(
+                f"Prompt Length     : {len(prompt):,}"
+            )
+
+            console.info(
+                f"Clipboard Length  : {len(clipboard_text):,}"
+            )
+
+            console.info(
+                f"Length Difference : "
+                f"{len(prompt) - len(clipboard_text):,}"
             )
 
         input(
